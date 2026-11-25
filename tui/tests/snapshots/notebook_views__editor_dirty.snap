@@ -1,10 +1,9 @@
 ---
 source: tui/tests/notebook_views.rs
-assertion_line: 41
 expression: text
 snapshot_kind: text
 ---
- Note 'Sample Note' normal mode                                                                        [?] Show keymap 
+ Note 'Sample Note' normal mode                                                      [Ctrl+O / Ctrl+\] Pane · [Ctrl+P] 
 [Browser]                                   ▐ 󱇗 Sample Note                                                             
  󰝰 Notes                                    ▐ 1 XHi :D                                                                  
    󱇗 Sample Note                            ▐                                                                           

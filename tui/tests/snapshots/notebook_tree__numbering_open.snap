@@ -1,10 +1,9 @@
 ---
 source: tui/tests/notebook_tree.rs
-assertion_line: 32
 expression: text
 snapshot_kind: text
 ---
- Steps: '2' selected                                                                                   [?] Show keymap 
+ Steps: '2' selected                                                                 [Ctrl+O / Ctrl+\] Pane · [?] Keyma
 [Browser]                                   ▐[Editor]                                                                   
  󰝰 Notes                                    ▐ 1 Welcome to Glues!                                                       
    󱇗 Sample Note                            ▐ 2                                                                         
@@ -12,7 +11,7 @@ snapshot_kind: text
                                             ▐ 4 Press `m` in the note tree to create notes or directories.              
                                             ▐ 5 Press `Enter` on a note to open it and start writing.                   
                                             ▐ 6                                                                         
-                                            ▐ 7 GitHub: https://github.com/gluesql/glues                                
+                                            ▐ 7 GitHub: https://github.com/eqan/glues-minimal-terminal-note-taker       
                                             ▐                                                                           
                                             ▐                                                                           
                                             ▐                                                                           

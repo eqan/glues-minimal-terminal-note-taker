@@ -1,131 +1,50 @@
-# Glues
+# Glues Minimal
 
-[![crates.io](https://img.shields.io/crates/v/glues.svg)](https://crates.io/crates/glues)
-[![LICENSE](https://img.shields.io/crates/l/glues.svg)](https://github.com/gluesql/glues/blob/main/LICENSE)
-![Rust](https://github.com/gluesql/glues/workflows/Rust/badge.svg)
-[![Chat](https://img.shields.io/discord/780298017940176946?logo=discord&logoColor=white)](https://discord.gg/C6TDEgzDzY)
+A Vim-inspired terminal note-taking app with Instant, Local, and Git storage. Notes support Markdown, including tables, lists, links, and code blocks.
 
-## Vim-inspired, privacy-first TUI note-taking app with multiple storage options
+## Download
 
-Glues is a Vim-inspired, terminal-based (TUI) note-taking application that offers flexible and secure storage options. You can keep notes purely in memory, store them as individual files, write them into a portable redb database, choose Git for distributed version control, or opt for MongoDB for centralized data management.
+Download a ready-to-run binary from the [GitHub Releases](https://github.com/eqan/glues-minimal-terminal-note-taker/releases) page. Tagged releases publish binaries for Linux x86_64, macOS ARM64, and Windows x86_64.
 
-Glues is designed with a core architecture that operates independently of the TUI, providing robust state management and action handling. Although the current frontend is TUI-based, the architecture allows for easy integration with other frontends such as GUI, iOS, Android, or even running headlessly without a UI. The TUI interface clearly displays the current state and available actions, making it intuitive and easy to use.
+## Build and run
 
-With no reliance on third-party services, Glues ensures that your data remains private and fully under your control. Currently, it ships with Instant (in-memory), Local (file-per-note), redb (single-file), Git, and MongoDB storage options, and we plan to integrate additional backends through [GlueSQL](https://github.com/gluesql/gluesql) for even more flexibility. The core concept behind Glues is to empower users to choose how their data is handled—whether through local files, a redb database file, Git, MongoDB, or future storage options—without any dependence on a central authority. This makes Glues a sync-enabled application that prioritizes user autonomy and privacy.
-
-<img width="1497" alt="Glues workspace view with theme dialog, keymap overlay, and note tree" src="docs/releases/assets/v0.8.0_workspace.png" />
-
-## Installation
-
-First, ensure [Rust](https://www.rust-lang.org/tools/install) is installed. Then, install Glues by running:
+Install Rust 1.90 or newer, then build from a checkout:
 
 ```bash
-cargo install glues
+git clone https://github.com/eqan/glues-minimal-terminal-note-taker.git
+cd glues-minimal-terminal-note-taker
+cargo build --release -p glues
+./target/release/glues
 ```
 
-For Arch Linux users, Glues is available [in the AUR](https://aur.archlinux.org/packages/glues/):
+You can also install the executable directly from Git:
 
 ```bash
-paru -S glues # user your favorite AUR helper
+cargo install --git https://github.com/eqan/glues-minimal-terminal-note-taker.git glues
+glues
 ```
 
-We're working on making Glues available through more package managers soon.
+## Storage
 
-## Usage
+- **Instant** keeps notes in memory until the app exits.
+- **Local** stores notes as files in the selected directory.
+- **Git** stores notes in an existing Git repository and syncs through its configured remote and branch.
 
-Glues offers various storage options to suit your needs:
+The last-used paths, Git settings, theme, and application log are saved under `~/.glues/`.
 
-* **Instant**: Data is stored in memory and only persists while the app is running. This option is useful for testing or temporary notes as it is entirely volatile.
-* **Local**: Notes are stored locally as separate files. This is the default option for users who prefer a simple, file-based approach without any remote synchronization.
-* **redb**: Persist everything inside a single [redb](https://github.com/cberner/redb) database file. Provide a path and Glues will create or reuse the file, giving you a portable, self-contained notebook that is easy to back up or sync with other tools.
-* **Git**:
-  - Git storage requires three inputs: `path`, `remote`, and `branch`.
-  - The `path` should point to an existing local Git repository. For example, you can clone a GitHub repository and use that path.
-  - The `remote` and `branch` specify the target remote repository and branch for synchronization.
-  - When you modify notes or directories, Glues will automatically sync changes with the specified remote repository, allowing for distributed note management.
+## Shortcuts
 
-  To see how notes and directories are stored using Git, you can refer to the [Glues sample repository](https://github.com/gluesql/glues-sample-note).
-* **MongoDB**:
-  - MongoDB storage allows you to store your notes in a MongoDB database, providing a scalable and centralized solution for managing your notes.
-  - You need to provide the MongoDB connection string and the database name. Glues will handle storing and retrieving notes from the specified database.
-  - This option is ideal for users who need centralized data management or work in team environments where notes are shared.
-* **Proxy**:
-  - Point Glues at an HTTP proxy that exposes the same set of operations as the local backend.
-  - Run the bundled proxy server with `glues server memory` (replace `memory` with `file`, `redb`, `git`, or `mongo` as needed). The server listens on `127.0.0.1:4000` by default; use `--listen` to change the address.
-  - Protect externally reachable servers with an auth token. Set `GLUES_SERVER_TOKEN` or pass `--auth-token <value>` when launching the server. The TUI's Proxy flow will prompt for the token and send it as a `Bearer` header. Leave the field empty to connect to a token-free server on your local machine.
-  - In the TUI entry menu choose `Proxy` (shortcut `[p]`), enter the proxy URL (e.g. `http://127.0.0.1:4000`), provide the token if required, and Glues will talk to the remote backend just like it does locally.
-
-> **Web build:** The browser version of Glues persists configuration through GlueSQL WebStorage (LocalStorage) and currently exposes the **Instant**, **IndexedDB**, and **Proxy** backends. Use IndexedDB to keep notes in-browser across sessions, or point the Proxy option at a running Glues proxy server to keep data outside the browser sandbox.
-
-### Web Build
-
-Try the hosted demo at https://gluesql.org/glues (Instant, IndexedDB, or Proxy storage).
-
-Glues ships with a [Ratzilla](https://github.com/orhun/ratzilla)-powered web frontend that reuses the TUI logic.
-
-1. Install prerequisites:
-   ```bash
-   rustup target add wasm32-unknown-unknown
-   cargo install trunk
-   ```
-2. Start the web app:
-   ```bash
-   cd tui/web
-   trunk serve --release
-   ```
-3. Open [http://localhost:8080](http://localhost:8080) in your browser. Use **Instant** for ephemeral notes, **IndexedDB** for browser-local persistence, or connect to a running proxy server via the **Proxy** option.
-
-To produce a static bundle instead, run `trunk build --release` from the same directory; the optimized artifacts will be emitted under `dist/`.
-
-### Theme Presets
-
-Glues includes several built-in color schemes. The application starts with the
-`dark` palette by default, and you can switch presets at runtime through the
-Theme menu in the entry dialog.
-
-The built-in themes are:
-
-* `dark` – 256-color palette
-* `light` – 256-color palette
-* `pastel` – a light theme defined using RGB values
-* `sunrise` – a warm light theme defined using RGB values
-* `midnight` – a blue-toned dark theme defined using RGB values
-* `forest` – a nature-inspired dark theme defined using RGB values
-
-## Roadmap
-
-Here is our plan for Glues and the features we aim to implement. Below is a list of upcoming improvements to make Glues more useful and versatile. If you have suggestions for new features, please feel free to open a GitHub issue.
-
-* **[In Progress] MCP Server Integration**
-  - Integration with an MCP server is currently the top priority to enable secure interaction between Glues and external LLMs.
-  - The setup will include **API token-based access control**, allowing permission scoping such as directory-level access and note read/write operations.
-  - With this approach, LLMs will operate strictly within the boundaries defined by the user.
-  - The MCP server runs locally, ensuring that LLM-based features are fully managed and authorized by the user.
-* **Enhanced Note Content Support:** Add support for richer note content, including tables and images, in addition to plain text. This will help users create more detailed and organized notes.
-* **Search and Tagging Improvements:** Improve search with tag support and advanced filtering to make it easier to find specific notes.
-* **Customizable Themes:** Allow users to personalize the TUI interface with customizable themes.
-* **Additional Package Manager Support:** Expand distribution beyond Cargo, making Glues available through more package managers like Homebrew, Snap, and APT for easier installation.
-* **Storage Migration:** Add a feature to migrate data between different storage options, such as from local files to Git.
-* **More Vim Keybindings:** Integrate Vim keybindings for users who prefer Vim-like shortcuts.
-* **Additional Storage Backends:** Support more storage options like Redis and object storage for greater flexibility.
+- `Ctrl+P` toggles Markdown preview in the note pane.
+- `Ctrl+O` or `Ctrl+\` toggles the side pane. Either shortcut hides or restores it.
 
 ## Development
 
-### Coverage
-
-Install [cargo-llvm-cov](https://github.com/taiki-e/cargo-llvm-cov) once with:
-
 ```bash
-cargo install cargo-llvm-cov
+cargo fmt --all -- --check
+cargo clippy --all-targets -- -D warnings
+cargo test --workspace
 ```
-
-Key commands exposed via project aliases:
-
-- `cargo coverage` - run the workspace under coverage and emit an HTML report at `target/llvm-cov/html/index.html`
-- `cargo coverage-report` - print a text summary (run after `cargo coverage --no-report`; append `--fail-under-lines <N>` to guard CI)
-- `cargo coverage-lcov` - export `target/llvm-cov/lcov.info` for external services
-- `cargo coverage-clean` - remove coverage artifacts
 
 ## License
 
-This project is licensed under the Apache License, Version 2.0 - see the [LICENSE](https://github.com/gluesql/glues/blob/main/LICENSE) file for details.
+Apache-2.0. See [LICENSE](LICENSE).

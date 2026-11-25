@@ -3,7 +3,7 @@ source: tui/tests/editor_visual.rs
 expression: text
 snapshot_kind: text
 ---
- Note 'Sample Note' visual mode                                                                        [?] Show keymap 
+ Note 'Sample Note' visual mode                                                      [Ctrl+O / Ctrl+\] Pane · [?] Keyma
 [Browser]                                   ▐ 󱇗 Sample Note                                                             
  󰝰 Notes                                    ▐ 1 Hi :D                                                                   
    󱇗 Sample Note                            ▐                                                                           

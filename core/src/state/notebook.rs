@@ -304,5 +304,5 @@ pub async fn consume(glues: &mut Glues, event: Event) -> Result<NotebookTransiti
         .ok_or(Error::InvalidState("[consume] empty db".to_owned()))?;
     let state: &mut NotebookState = glues.state.get_inner_mut()?;
 
-    inner_state::consume(db, state, event).await
+    inner_state::consume(db.as_mut(), state, event).await
 }

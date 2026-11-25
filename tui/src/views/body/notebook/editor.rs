@@ -8,7 +8,7 @@ use {
         layout::Rect,
         style::{Style, Stylize},
         text::{Line, Span},
-        widgets::{Block, Padding},
+        widgets::{Block, Padding, Paragraph, Wrap},
     },
     tui_textarea::TextArea,
 };
@@ -21,7 +21,7 @@ const SAMPLE_NOTE: [&str; 7] = [
     "Press `m` in the note tree to create notes or directories.",
     "Press `Enter` on a note to open it and start writing.",
     "",
-    "GitHub: https://github.com/gluesql/glues",
+    "GitHub: https://github.com/eqan/glues-minimal-terminal-note-taker",
 ];
 
 pub fn draw(frame: &mut Frame, area: Rect, context: &mut Context) {
@@ -86,20 +86,29 @@ pub fn draw(frame: &mut Frame, area: Rect, context: &mut Context) {
         )
     };
 
-    let (mode, bg) = match context.notebook.state {
-        ContextState::EditorNormalMode { .. } => (
-            Span::raw(" NORMAL ").fg(THEME.text).bg(THEME.background),
-            THEME.background,
-        ),
-        ContextState::EditorInsertMode => (
-            Span::raw(" INSERT ").fg(THEME.accent_text).bg(THEME.accent),
+    let (mode, bg) = if context.notebook.markdown_preview {
+        (
+            Span::raw(" PREVIEW ")
+                .fg(THEME.accent_text)
+                .bg(THEME.accent),
             THEME.accent,
-        ),
-        ContextState::EditorVisualMode => (
-            Span::raw(" VISUAL ").fg(THEME.error_text).bg(THEME.error),
-            THEME.error,
-        ),
-        _ => (Span::raw("        ").bg(THEME.surface), THEME.surface),
+        )
+    } else {
+        match context.notebook.state {
+            ContextState::EditorNormalMode { .. } => (
+                Span::raw(" NORMAL ").fg(THEME.text).bg(THEME.background),
+                THEME.background,
+            ),
+            ContextState::EditorInsertMode => (
+                Span::raw(" INSERT ").fg(THEME.accent_text).bg(THEME.accent),
+                THEME.accent,
+            ),
+            ContextState::EditorVisualMode => (
+                Span::raw(" VISUAL ").fg(THEME.error_text).bg(THEME.error),
+                THEME.error,
+            ),
+            _ => (Span::raw("        ").bg(THEME.surface), THEME.surface),
+        }
     };
 
     if context.notebook.tab_index.is_some() {
@@ -134,6 +143,27 @@ pub fn draw(frame: &mut Frame, area: Rect, context: &mut Context) {
     } else {
         Padding::left(1)
     });
+
+    if context.notebook.markdown_preview {
+        let content = context
+            .notebook
+            .tab_index
+            .map(|_| context.notebook.get_editor().lines().join("\n"))
+            .unwrap_or_else(|| SAMPLE_NOTE.join("\n"));
+        let markdown = super::markdown::render(&content);
+        let preview_block = block.padding(Padding::left(1));
+
+        frame.render_widget(
+            Paragraph::new(markdown)
+                .block(preview_block)
+                .style(Style::default().fg(THEME.text).bg(THEME.background))
+                .wrap(Wrap { trim: false })
+                .scroll((context.notebook.markdown_preview_scroll, 0)),
+            area,
+        );
+
+        return;
+    }
 
     let show_line_number = context.notebook.show_line_number;
     let state = context.notebook.state;

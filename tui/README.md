@@ -1,6 +1,5 @@
 # glues-tui
 
-Terminal and WebAssembly frontends for Glues. The crate contains the Ratatui-based interface along with the shared logic for the browser build.
+The Ratatui terminal interface, keyboard handling, and Markdown preview renderer for Glues Minimal.
 
-Visit the project README for screenshots, installation steps, and storage backends:
-https://github.com/gluesql/glues#readme
+See the root [README](../README.md) for installation and shortcut instructions.

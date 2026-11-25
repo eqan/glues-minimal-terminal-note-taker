@@ -1,0 +1,55 @@
+name: Release binaries
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.asset }}
+    strategy:
+      matrix:
+        include:
+          - runner: ubuntu-latest
+            asset: linux-x86_64
+            binary: glues
+            filename: glues-linux-x86_64
+          - runner: macos-14
+            asset: macos-aarch64
+            binary: glues
+            filename: glues-macos-aarch64
+          - runner: windows-latest
+            asset: windows-x86_64
+            binary: glues.exe
+            filename: glues-windows-x86_64.exe
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.90
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --locked --release -p glues
+      - name: Package binary
+        shell: bash
+        run: cp "target/release/${{ matrix.binary }}" "${{ matrix.filename }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: glues-${{ matrix.asset }}
+          path: ${{ matrix.filename }}
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --generate-notes --verify-tag

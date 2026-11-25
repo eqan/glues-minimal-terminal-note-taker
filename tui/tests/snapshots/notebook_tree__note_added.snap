@@ -3,7 +3,7 @@ source: tui/tests/notebook_tree.rs
 expression: text
 snapshot_kind: text
 ---
- Note 'New Note' normal mode                                                                           [?] Show keymap 
+ Note 'New Note' normal mode                                                         [Ctrl+O / Ctrl+\] Pane · [Ctrl+P] 
 [Browser]                                   ▐ 󱇗 New Note                                                                
  󰝰 Notes                                    ▐ 1                                                                         
    󱇗 Sample Note                            ▐                                                                           

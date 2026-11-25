@@ -47,7 +47,6 @@ pub fn draw(frame: &mut Frame, context: &mut Context) {
         Span::styled("Back to menu", hint_style),
     ])];
 
-    #[cfg(not(target_arch = "wasm32"))]
     {
         lines.push(Line::from(vec![
             Span::styled("[q]", key_style),

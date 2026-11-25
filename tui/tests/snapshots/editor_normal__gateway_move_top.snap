@@ -1,10 +1,9 @@
 ---
 source: tui/tests/editor_normal.rs
-assertion_line: 130
 expression: text
 snapshot_kind: text
 ---
- Note 'Sample Note' normal mode                                                                        [?] Show keymap 
+ Note 'Sample Note' normal mode                                                      [Ctrl+O / Ctrl+\] Pane · [Ctrl+P] 
 [Browser]                                   ▐ 󱇗 Sample Note                                                             
  󰝰 Notes                                    ▐  1 Line 01 — the quick brown fox jumps over the lazy dog.                 
    󱇗 Sample Note                            ▐  2 Line 02 — the quick brown fox jumps over the lazy dog.                 

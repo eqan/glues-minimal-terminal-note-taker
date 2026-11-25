@@ -23,25 +23,11 @@ pub enum Event {
 #[derive(Clone, Debug, Display)]
 pub enum EntryEvent {
     OpenMemory,
-    #[cfg(target_arch = "wasm32")]
-    OpenIndexedDb {
-        namespace: String,
-    },
-    #[cfg(not(target_arch = "wasm32"))]
-    OpenRedb(String),
     OpenFile(String),
     OpenGit {
         path: String,
         remote: String,
         branch: String,
-    },
-    OpenMongo {
-        conn_str: String,
-        db_name: String,
-    },
-    OpenProxy {
-        url: String,
-        auth_token: Option<String>,
     },
 }
 

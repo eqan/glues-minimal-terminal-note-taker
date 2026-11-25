@@ -2,10 +2,7 @@
 mod tester;
 use tester::Tester;
 
-use {
-    color_eyre::Result,
-    glues_tui::{config::LAST_PROXY_URL, input::KeyCode},
-};
+use {color_eyre::Result, glues_tui::input::KeyCode};
 
 #[tokio::test]
 async fn opens_instant_on_enter() -> Result<()> {
@@ -55,7 +52,6 @@ async fn help_overlay_toggles() -> Result<()> {
     Ok(())
 }
 
-#[cfg(not(target_arch = "wasm32"))]
 #[tokio::test]
 async fn open_local_prompt() -> Result<()> {
     let mut t = Tester::new().await?;
@@ -65,47 +61,6 @@ async fn open_local_prompt() -> Result<()> {
     t.press('l').await;
     t.draw()?;
     snap!(t, "local_prompt");
-
-    Ok(())
-}
-
-#[tokio::test]
-async fn open_redb_prompt() -> Result<()> {
-    let mut t = Tester::new().await?;
-
-    t.draw()?;
-    // open redb storage prompt via hotkey 'r'
-    t.press('r').await;
-    t.draw()?;
-    snap!(t, "redb_prompt");
-
-    Ok(())
-}
-
-#[tokio::test]
-async fn proxy_prompt_open() -> Result<()> {
-    let mut t = Tester::new().await?;
-    glues_tui::config::update(LAST_PROXY_URL, "").await;
-    t.draw()?;
-
-    // open Proxy prompt via hotkey 'p'
-    t.press('p').await;
-    t.draw()?;
-    snap!(t, "proxy_prompt_open");
-
-    // proceed to the auth-token prompt
-    t.type_str("http://127.0.0.1:9").await;
-    t.key(KeyCode::Enter).await;
-    t.draw()?;
-    snap!(t, "proxy_token_prompt");
-
-    // provide a token (masked) and expect a connection failure alert
-    t.type_str("secret").await;
-    t.key(KeyCode::Enter).await;
-    t.draw()?;
-    snap!(t, "proxy_connect_error");
-
-    glues_tui::config::update(LAST_PROXY_URL, "").await;
 
     Ok(())
 }

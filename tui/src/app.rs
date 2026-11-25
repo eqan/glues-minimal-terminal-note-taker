@@ -4,7 +4,6 @@ use {
     ratatui::Frame,
 };
 
-#[cfg(not(target_arch = "wasm32"))]
 use {
     crate::{
         input::{Input, KeyCode, KeyEvent, KeyEventKind},
@@ -13,10 +12,6 @@ use {
     ratatui::DefaultTerminal,
     std::time::Duration,
 };
-
-#[cfg(target_arch = "wasm32")]
-#[cfg(not(target_arch = "wasm32"))]
-use crate::logger::*;
 
 pub struct App {
     pub(crate) glues: Glues,
@@ -46,7 +41,6 @@ impl App {
         &mut self.glues
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub async fn run(mut self, mut terminal: DefaultTerminal) -> color_eyre::Result<()> {
         use ratatui::crossterm as ct;
 

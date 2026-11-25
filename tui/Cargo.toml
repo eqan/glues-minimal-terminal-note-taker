@@ -5,14 +5,13 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 repository.workspace = true
-description = "TUI and WASM frontends for the Glues note-taking experience"
+description = "Terminal note-taking app with Markdown preview"
 readme = "README.md"
 keywords.workspace = true
 default-run = "glues-tui"
 
 [lib]
 name = "glues_tui"
-crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 glues-core.workspace = true
@@ -21,48 +20,14 @@ color-eyre = "0.6.3"
 tui-big-text = "0.7.0"
 tui-textarea = { version = "0.7.0", default-features = false, features = ["ratatui"] }
 textwrap = "0.16"
-
-[features]
-default = ["cli"]
-cli = []
-web = []
-
-[[bin]]
-name = "glues-tui"
-path = "src/main.rs"
-required-features = ["cli"]
-
-[dev-dependencies]
-insta = { version = "1", features = ["glob"] }
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-gluesql = { workspace = true, features = ["gluesql-csv-storage"] }
-home = "0.5.9"
+pulldown-cmark = "0.13.6"
 arboard = "3.4.1"
 tokio = { version = "1.41.0", features = ["macros", "rt-multi-thread"] }
 ratatui = { version = "0.29.0", default-features = false, features = ["crossterm"] }
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-gluesql = { workspace = true, features = ["gluesql-web-storage"] }
-ratzilla = "0.2.0"
-wasm-bindgen = "0.2"
-wasm-bindgen-futures = "0.4"
-console_error_panic_hook = "0.1"
-tokio = { version = "1.41.0", features = ["macros", "rt", "sync", "time"] }
-ratatui = { version = "0.29.0", default-features = false }
-web-sys = { version = "0.3", features = [
-    "CssStyleDeclaration",
-    "Document",
-    "EventTarget",
-    "HtmlElement",
-    "HtmlTextAreaElement",
-    "Event",
-    "InputEvent",
-    "KeyboardEvent",
-    "Window",
-    "CompositionEvent",
-    "Navigator",
-    "Clipboard",
-] }
-js-sys = "0.3"
-getrandom = { version = "0.2", features = ["js"] }
+[[bin]]
+name = "glues-tui"
+path = "src/main.rs"
+
+[dev-dependencies]
+insta = { version = "1", features = ["glob"] }

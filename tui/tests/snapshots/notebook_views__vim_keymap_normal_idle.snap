@@ -1,10 +1,9 @@
 ---
 source: tui/tests/notebook_views.rs
-assertion_line: 160
 expression: text
 snapshot_kind: text
 ---
- Note 'Sample N┌─────────────────────────────────VIM NORMAL MODE KEYMAP─────────────────────────────────┐?] Show keymap 
+ Note 'Sample N┌─────────────────────────────────VIM NORMAL MODE KEYMAP─────────────────────────────────┐ane · [Ctrl+P] 
 [Browser]      │                                                                                        │               
  󰝰 Notes       │  TO INSERT MODE                                                                        │               
    󱇗 Sample Not│  [i] Go to insert mode                                                                 │               

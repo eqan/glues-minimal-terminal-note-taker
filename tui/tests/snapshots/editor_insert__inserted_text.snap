@@ -3,7 +3,7 @@ source: tui/tests/editor_insert.rs
 expression: text
 snapshot_kind: text
 ---
- Note 'Sample Note' insert mode                                                                   [Ctrl+h] Show keymap 
+ Note 'Sample Note' insert mode                                                      [Ctrl+O / Ctrl+\] Pane · [Ctrl+H] 
 [Browser]                                   ▐ 󱇗 Sample Note                                                             
  󰝰 Notes                                    ▐ 1 HelloHi :D                                                              
    󱇗 Sample Note                            ▐                                                                           

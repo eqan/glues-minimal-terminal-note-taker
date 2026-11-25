@@ -19,9 +19,9 @@ use {
 pub fn draw(frame: &mut Frame, area: Rect, state: &State, context: &NotebookContext) {
     let description = format!(" {}", state.describe().log_unwrap());
     let insert_mode = matches!(context.state, ContextState::EditorInsertMode);
-    let [desc_area, keymap_area] =
-        Layout::horizontal([Percentage(100), Length(if insert_mode { 23 } else { 18 })])
-            .areas(area);
+    let preview_mode = context.markdown_preview;
+    let normal_editor = matches!(context.state, ContextState::EditorNormalMode { .. });
+    let [desc_area, keymap_area] = Layout::horizontal([Percentage(100), Length(36)]).areas(area);
 
     frame.render_widget(
         Text::raw(description)
@@ -33,10 +33,14 @@ pub fn draw(frame: &mut Frame, area: Rect, state: &State, context: &NotebookCont
     frame.render_widget(
         Line::from(vec![
             Span::raw("").fg(THEME.success).bg(THEME.panel),
-            Span::raw(if insert_mode {
-                " [Ctrl+h] Show keymap "
+            Span::raw(if preview_mode {
+                " [Ctrl+O / Ctrl+\\] Pane · [Ctrl+P] Edit "
+            } else if normal_editor {
+                " [Ctrl+O / Ctrl+\\] Pane · [Ctrl+P] Preview "
+            } else if insert_mode {
+                " [Ctrl+O / Ctrl+\\] Pane · [Ctrl+H] Keymap "
             } else {
-                " [?] Show keymap "
+                " [Ctrl+O / Ctrl+\\] Pane · [?] Keymap "
             })
             .fg(THEME.success_text)
             .bg(THEME.success),

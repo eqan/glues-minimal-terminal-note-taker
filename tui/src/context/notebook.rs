@@ -17,7 +17,6 @@ use {
     tui_textarea::TextArea,
 };
 
-#[cfg(not(target_arch = "wasm32"))]
 use arboard::Clipboard;
 
 pub use tree_item::{TreeItem, TreeItemKind};
@@ -81,6 +80,8 @@ pub struct NotebookContext {
 
     // editor
     pub editor_height: u16,
+    pub markdown_preview: bool,
+    pub markdown_preview_scroll: u16,
     pub tabs: Vec<Tab>,
     pub tab_index: Option<usize>,
     pub editors: HashMap<NoteId, EditorItem>,
@@ -108,6 +109,8 @@ impl Default for NotebookContext {
             directory_actions_state: ListState::default(),
 
             editor_height: 0,
+            markdown_preview: false,
+            markdown_preview_scroll: 0,
             tabs: vec![],
             tab_index: None,
             editors: HashMap::new(),
@@ -367,18 +370,34 @@ impl NotebookContext {
     pub fn update_yank(&mut self) {
         let text = self.get_editor().yank_text();
 
-        #[cfg(not(target_arch = "wasm32"))]
         if let Ok(mut clipboard) = Clipboard::new() {
             let _ = clipboard.set_text(&text);
         }
-
-        #[cfg(target_arch = "wasm32")]
-        crate::web::copy_to_clipboard(&text);
 
         self.yank = Some(text);
     }
 
     pub fn consume(&mut self, input: &Input) -> Action {
+        if let Input::Key(key) = input
+            && key.modifiers.ctrl
+            && matches!(
+                key.code,
+                KeyCode::Char('\\') | KeyCode::Char('o') | KeyCode::Char('O')
+            )
+        {
+            if matches!(self.state, ContextState::NoteTreeBrowsing)
+                && self.show_browser
+                && self.tabs.is_empty()
+            {
+                return Action::None;
+            }
+            return TuiAction::ToggleSidePane.into();
+        }
+
+        if self.markdown_preview {
+            return self.consume_on_markdown_preview(input);
+        }
+
         let code = match input {
             Input::Key(key) => key.code,
             _ => return Action::None,
@@ -395,6 +414,53 @@ impl NotebookContext {
             ContextState::NoteActionsDialog => self.consume_on_note_actions(code),
             ContextState::DirectoryActionsDialog => self.consume_on_directory_actions(code),
         }
+    }
+
+    fn consume_on_markdown_preview(&mut self, input: &Input) -> Action {
+        let key = match input {
+            Input::Key(key) => key,
+            _ => return Action::None,
+        };
+
+        if key.code == KeyCode::Char('p') && key.modifiers.ctrl {
+            self.markdown_preview = false;
+            self.markdown_preview_scroll = 0;
+            return Action::None;
+        }
+
+        match key.code {
+            KeyCode::Esc => {
+                self.markdown_preview = false;
+                self.markdown_preview_scroll = 0;
+            }
+            KeyCode::Char('j') | KeyCode::Down => {
+                self.markdown_preview_scroll = self.markdown_preview_scroll.saturating_add(1);
+            }
+            KeyCode::Char('k') | KeyCode::Up => {
+                self.markdown_preview_scroll = self.markdown_preview_scroll.saturating_sub(1);
+            }
+            KeyCode::PageDown => {
+                self.markdown_preview_scroll = self
+                    .markdown_preview_scroll
+                    .saturating_add(self.editor_height.max(1));
+            }
+            KeyCode::PageUp => {
+                self.markdown_preview_scroll = self
+                    .markdown_preview_scroll
+                    .saturating_sub(self.editor_height.max(1));
+            }
+            KeyCode::Home => self.markdown_preview_scroll = 0,
+            KeyCode::Tab => {
+                self.markdown_preview = false;
+                self.markdown_preview_scroll = 0;
+                self.show_browser = true;
+                self.update_yank();
+                return TuiAction::SaveAndPassThrough.into();
+            }
+            _ => {}
+        }
+
+        Action::None
     }
 
     fn consume_on_note_tree_browsing(&mut self, code: KeyCode) -> Action {
@@ -428,6 +494,16 @@ impl NotebookContext {
             _ => return Action::None,
         };
 
+        if idle
+            && let Input::Key(key) = input
+            && key.code == KeyCode::Char('p')
+            && key.modifiers.ctrl
+        {
+            self.markdown_preview = true;
+            self.markdown_preview_scroll = 0;
+            return Action::None;
+        }
+
         match code {
             KeyCode::Esc if idle => TuiAction::OpenNotebookQuitMenu {
                 save_before_open: true,
@@ -445,6 +521,15 @@ impl NotebookContext {
 
     fn consume_on_editor_insert(&mut self, input: &Input) -> Action {
         match input {
+            Input::Key(KeyEvent {
+                code: KeyCode::Char('p'),
+                modifiers,
+                ..
+            }) if modifiers.ctrl => {
+                self.markdown_preview = true;
+                self.markdown_preview_scroll = 0;
+                Action::Dispatch(NotebookEvent::ViewNote.into())
+            }
             Input::Key(KeyEvent {
                 code: KeyCode::Esc, ..
             }) => Action::Dispatch(NotebookEvent::ViewNote.into()),

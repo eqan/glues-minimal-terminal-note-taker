@@ -1,7 +1,6 @@
 use {
     super::{
-        App,
-        config::{self, LAST_PROXY_URL},
+        App, config,
         context::{ContextPrompt, QuitMenu},
         logger::*,
     },
@@ -10,20 +9,11 @@ use {
     ratatui::text::Line,
 };
 
-#[cfg(target_arch = "wasm32")]
-use super::config::LAST_IDB_NAMESPACE;
-
-#[cfg_attr(target_arch = "wasm32", allow(unused_imports))]
 use ratatui::style::Stylize;
 
-#[cfg_attr(target_arch = "wasm32", allow(unused_imports))]
 use super::theme::THEME;
 
-#[cfg(not(target_arch = "wasm32"))]
-use super::config::{
-    LAST_FILE_PATH, LAST_GIT_BRANCH, LAST_GIT_PATH, LAST_GIT_REMOTE, LAST_MONGO_CONN_STR,
-    LAST_MONGO_DB_NAME, LAST_REDB_PATH,
-};
+use super::config::{LAST_FILE_PATH, LAST_GIT_BRANCH, LAST_GIT_PATH, LAST_GIT_REMOTE};
 
 #[derive(Clone)]
 pub enum Action {
@@ -53,6 +43,7 @@ pub enum TuiAction {
     Help,
     OpenThemeMenu,
     ShowEditorKeymap,
+    ToggleSidePane,
     SaveAndPassThrough,
     OpenNotebookQuitMenu {
         save_before_open: bool,
@@ -61,13 +52,7 @@ pub enum TuiAction {
     Quit,
 
     OpenFile,
-    #[cfg(not(target_arch = "wasm32"))]
-    OpenRedb,
     OpenGit(OpenGitStep),
-    OpenMongo(OpenMongoStep),
-    OpenProxy(OpenProxyStep),
-    #[cfg(target_arch = "wasm32")]
-    OpenIndexedDb,
 
     RenameNote,
     RemoveNote,
@@ -75,18 +60,6 @@ pub enum TuiAction {
     AddDirectory,
     RenameDirectory,
     RemoveDirectory,
-}
-
-#[derive(Clone)]
-pub enum OpenMongoStep {
-    ConnStr,
-    Database { conn_str: String },
-}
-
-#[derive(Clone)]
-pub enum OpenProxyStep {
-    Url,
-    Token { url: String },
 }
 
 #[derive(Clone)]
@@ -124,6 +97,29 @@ impl App {
             Action::Tui(TuiAction::ShowEditorKeymap) => {
                 self.context.editor_keymap = true;
             }
+            Action::Tui(TuiAction::ToggleSidePane) => {
+                let hide_sidepane = self.context.notebook.show_browser;
+                self.context.notebook.show_browser = !hide_sidepane;
+
+                if hide_sidepane
+                    && matches!(
+                        self.context.notebook.state,
+                        crate::context::notebook::ContextState::NoteTreeBrowsing
+                    )
+                {
+                    if self.context.notebook.tabs.is_empty() {
+                        self.context.notebook.show_browser = true;
+                        return false;
+                    }
+
+                    let transition = self
+                        .glues
+                        .dispatch(Event::Key(KeyEvent::Tab))
+                        .await
+                        .log_unwrap();
+                    self.handle_transition(transition).await;
+                }
+            }
             Action::Tui(TuiAction::Alert(message)) => {
                 self.context.alert = Some(message);
             }
@@ -160,7 +156,6 @@ impl App {
             }) => {
                 self.context.prompt = Some(ContextPrompt::new(message, *action, default));
             }
-            #[cfg(not(target_arch = "wasm32"))]
             Action::Tui(TuiAction::OpenGit(OpenGitStep::Path)) => {
                 let path = self
                     .context
@@ -177,7 +172,6 @@ impl App {
                 let action = TuiAction::OpenGit(OpenGitStep::Remote { path }).into();
                 self.context.prompt = Some(ContextPrompt::new(message, action, default));
             }
-            #[cfg(not(target_arch = "wasm32"))]
             Action::Tui(TuiAction::OpenGit(OpenGitStep::Remote { path })) => {
                 let remote = self
                     .context
@@ -195,7 +189,6 @@ impl App {
                 let action = TuiAction::OpenGit(OpenGitStep::Branch { path, remote }).into();
                 self.context.prompt = Some(ContextPrompt::new(message, action, default));
             }
-            #[cfg(not(target_arch = "wasm32"))]
             Action::Tui(TuiAction::OpenGit(OpenGitStep::Branch { path, remote })) => {
                 let branch = self
                     .context
@@ -215,130 +208,6 @@ impl App {
                     .log_unwrap();
                 self.handle_transition(transition).await;
             }
-            #[cfg(not(target_arch = "wasm32"))]
-            Action::Tui(TuiAction::OpenMongo(OpenMongoStep::ConnStr)) => {
-                let conn_str = self
-                    .context
-                    .take_prompt_input()
-                    .log_expect("conn str must not be none");
-                let message = vec![
-                    Line::from(format!("conn_str: {conn_str}").fg(THEME.hint)),
-                    Line::raw(""),
-                    Line::raw("Enter the database name:"),
-                ];
-
-                config::update(LAST_MONGO_CONN_STR, &conn_str).await;
-                let default = config::get(LAST_MONGO_DB_NAME).await;
-
-                let action = TuiAction::OpenMongo(OpenMongoStep::Database { conn_str }).into();
-                self.context.prompt = Some(ContextPrompt::new(message, action, default));
-            }
-            #[cfg(not(target_arch = "wasm32"))]
-            Action::Tui(TuiAction::OpenMongo(OpenMongoStep::Database { conn_str })) => {
-                let db_name = self
-                    .context
-                    .take_prompt_input()
-                    .log_expect("database name must not be none");
-
-                config::update(LAST_MONGO_DB_NAME, &db_name).await;
-
-                let transition = self
-                    .glues
-                    .dispatch(EntryEvent::OpenMongo { conn_str, db_name }.into())
-                    .await
-                    .log_unwrap();
-                self.handle_transition(transition).await;
-            }
-            Action::Tui(TuiAction::OpenProxy(OpenProxyStep::Url)) => {
-                let url = self
-                    .context
-                    .take_prompt_input()
-                    .log_expect("proxy url must not be none");
-
-                config::update(LAST_PROXY_URL, &url).await;
-
-                let message = vec![
-                    Line::raw("Enter the authentication token (optional):"),
-                    Line::from("Leave empty to connect without a token.".fg(THEME.hint)),
-                    Line::from(
-                        "Servers without authentication accept empty tokens.".fg(THEME.hint),
-                    ),
-                ];
-                let action = TuiAction::OpenProxy(OpenProxyStep::Token { url }).into();
-                self.context.prompt = Some(ContextPrompt::new_masked(message, action, None, '*'));
-            }
-            Action::Tui(TuiAction::OpenProxy(OpenProxyStep::Token { url })) => {
-                let token_input = self
-                    .context
-                    .take_prompt_input()
-                    .log_expect("proxy token must not be none");
-
-                let token = token_input.trim().to_owned();
-                let auth_token = if token.is_empty() { None } else { Some(token) };
-
-                match self
-                    .glues
-                    .dispatch(EntryEvent::OpenProxy { url, auth_token }.into())
-                    .await
-                {
-                    Ok(transition) => {
-                        self.handle_transition(transition).await;
-                    }
-                    Err(err) => {
-                        self.context.alert = Some(err.to_string());
-                    }
-                }
-            }
-            #[cfg(target_arch = "wasm32")]
-            Action::Tui(TuiAction::OpenIndexedDb) => {
-                let namespace_input = self
-                    .context
-                    .take_prompt_input()
-                    .log_expect("IndexedDB namespace must not be none");
-
-                let namespace = {
-                    let trimmed = namespace_input.trim();
-                    if trimmed.is_empty() {
-                        "glues".to_owned()
-                    } else {
-                        trimmed.to_owned()
-                    }
-                };
-
-                config::update(LAST_IDB_NAMESPACE, &namespace).await;
-
-                let transition = self
-                    .glues
-                    .dispatch(EntryEvent::OpenIndexedDb { namespace }.into())
-                    .await
-                    .log_unwrap();
-                self.handle_transition(transition).await;
-            }
-            #[cfg(target_arch = "wasm32")]
-            Action::Tui(TuiAction::OpenFile)
-            | Action::Tui(TuiAction::OpenGit(_))
-            | Action::Tui(TuiAction::OpenMongo(_)) => {}
-            #[cfg(not(target_arch = "wasm32"))]
-            Action::Tui(TuiAction::OpenRedb) => {
-                let path = self
-                    .context
-                    .take_prompt_input()
-                    .log_expect("redb path prompt must not be none");
-                if path.is_empty() {
-                    self.context.alert = Some("The redb path cannot be empty".to_string());
-                    return false;
-                }
-
-                config::update(LAST_REDB_PATH, &path).await;
-
-                let transition = self
-                    .glues
-                    .dispatch(EntryEvent::OpenRedb(path).into())
-                    .await
-                    .log_unwrap();
-                self.handle_transition(transition).await;
-            }
-            #[cfg(not(target_arch = "wasm32"))]
             Action::Tui(TuiAction::OpenFile) => {
                 let path = self
                     .context

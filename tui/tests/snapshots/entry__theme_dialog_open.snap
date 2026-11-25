@@ -1,10 +1,9 @@
 ---
 source: tui/tests/entry.rs
-assertion_line: 102
 expression: text
 snapshot_kind: text
 ---
- Glues - TUI note-taking app offering complete data control and flexible storage options               [?] Show keymap 
+ Glues - TUI note-taking app offering complete data control and flexible storage opt [Ctrl+O / Ctrl+\] Pane · [?] Keyma
                                                                                                                         
                                                                                                                         
                                                                                                                         
@@ -30,9 +29,9 @@ snapshot_kind: text
                                          ││    [Enter] Apply  [Esc] Cancel   ││                                         
                                          ││                                  ││                                         
                                          │└──────────────────────────────────┘│                                         
-                                         │   [p] Proxy                        │                                         
-                                         │   [h] Help                         │                                         
-                                         │   [t] Theme                        │                                         
                                          │   [q] Quit                         │                                         
+                                         │                                    │                                         
+                                         │                                    │                                         
+                                         │                                    │                                         
                                          │                                    │                                         
                                          └────────────────────────────────────┘

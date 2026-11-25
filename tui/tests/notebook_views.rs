@@ -30,6 +30,44 @@ async fn notebook_browser_toggle() -> Result<()> {
 }
 
 #[tokio::test]
+async fn markdown_preview_renders_note_content() -> Result<()> {
+    let mut t = Tester::new().await?;
+    t.open_instant().await?;
+    t.open_first_note().await?;
+
+    {
+        let context = t.app.context_mut();
+        let item = context
+            .notebook
+            .editors
+            .values_mut()
+            .next()
+            .expect("opened note editor");
+        item.editor.select_all();
+        item.editor.insert_str(
+            "# Heading\n\nA **bold _nested_ word** and [link](https://example.com).\n\n| Programme | Ranking | Assessment |\n|---|---:|---|\n| Alpha Robotics | #73 | Strong research and practical work |\n\n```rs\nlet x = 1;\n```",
+        );
+    }
+
+    t.press('i').await;
+    t.ctrl('p').await;
+    assert!(t.app.context_mut().notebook.markdown_preview);
+
+    t.draw()?;
+    let rendered = t.snapshot_text();
+    assert!(rendered.contains("Heading"), "{rendered}");
+    assert!(rendered.contains("bold nested word"), "{rendered}");
+    assert!(rendered.contains("◆ Alpha Robotics"), "{rendered}");
+    assert!(rendered.contains("Ranking: #73"), "{rendered}");
+    assert!(rendered.contains("Strong research and practical work"));
+    assert!(rendered.contains("let x = 1;"), "{rendered}");
+    assert!(!rendered.contains("**bold"));
+    assert!(!rendered.contains("```"));
+    assert!(!rendered.contains("|---"));
+    Ok(())
+}
+
+#[tokio::test]
 async fn notebook_editor_states() -> Result<()> {
     let mut t = Tester::new().await?;
     t.open_instant().await?;
@@ -112,7 +150,7 @@ async fn notebook_editor_states() -> Result<()> {
     t.key(KeyCode::Esc).await;
     {
         let context = t.app.context_mut();
-        for (_, item) in context.notebook.editors.iter_mut() {
+        for item in context.notebook.editors.values_mut() {
             item.dirty = false;
         }
         if let Some(tab) = context.notebook.tabs.get_mut(0) {

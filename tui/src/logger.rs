@@ -1,45 +1,39 @@
-use std::fmt::{Debug, Display};
-
-#[cfg(target_arch = "wasm32")]
-use ratzilla::web_sys::console;
-#[cfg(target_arch = "wasm32")]
-use wasm_bindgen::JsValue;
-
-#[cfg(not(target_arch = "wasm32"))]
-use {
-    crate::config::platform::get_glue,
-    gluesql::core::ast_builder::{Execute, table, text},
+use std::{
+    fmt::{Debug, Display},
+    fs::{self, File, OpenOptions},
+    io::Write,
+    sync::{Mutex, OnceLock},
+    time::{SystemTime, UNIX_EPOCH},
 };
 
+static LOG_FILE: OnceLock<Mutex<File>> = OnceLock::new();
+
 pub async fn init() {
-    #[cfg(not(target_arch = "wasm32"))]
+    let directory = crate::config::config_dir();
+    if fs::create_dir_all(&directory).is_err() {
+        return;
+    }
+
+    if let Ok(file) = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(directory.join("glues.log"))
     {
-        let mut glue = get_glue();
-        table("logs")
-            .create_table_if_not_exists()
-            .add_column("timestamp TIMESTAMP DEFAULT NOW()")
-            .add_column("message TEXT")
-            .execute(&mut glue)
-            .await
-            .expect("logger should create logs table");
+        let _ = LOG_FILE.set(Mutex::new(file));
     }
 }
 
 pub async fn log(message: &str) {
-    #[cfg(target_arch = "wasm32")]
-    console::log_1(&JsValue::from_str(message));
-
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        let mut glue = get_glue();
-        table("logs")
-            .insert()
-            .columns("message")
-            .values(vec![vec![text(message)]])
-            .execute(&mut glue)
-            .await
-            .expect("logger should insert log entry");
-    }
+    let Some(file) = LOG_FILE.get() else {
+        return;
+    };
+    let Ok(mut file) = file.lock() else {
+        return;
+    };
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_or(0, |duration| duration.as_secs());
+    let _ = writeln!(file, "{timestamp} {message}");
 }
 
 #[macro_export]
@@ -55,8 +49,8 @@ pub trait LogExpectExt<V> {
 
 impl<V> LogExpectExt<V> for Option<V> {
     fn log_expect(self, message: &str) -> V {
-        if let Some(v) = self {
-            v
+        if let Some(value) = self {
+            value
         } else {
             panic!("{message}");
         }
@@ -74,8 +68,8 @@ where
 {
     fn log_unwrap(self) -> V {
         match self {
-            Ok(v) => v,
-            Err(e) => panic!("{e}"),
+            Ok(value) => value,
+            Err(error) => panic!("{error}"),
         }
     }
 }

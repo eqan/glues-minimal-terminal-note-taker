@@ -2,12 +2,12 @@
 coverage = [
     "llvm-cov",
     "--workspace",
-    "--html"
 ]
 coverage-report = [
     "llvm-cov",
     "report",
-    "--text"
+    "--json",
+    "--summary-only"
 ]
 coverage-lcov = [
     "llvm-cov",
