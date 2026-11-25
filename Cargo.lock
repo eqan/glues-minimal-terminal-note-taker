@@ -904,7 +904,7 @@ dependencies = [
 
 [[package]]
 name = "glues"
-version = "0.8.1"
+version = "0.8.2"
 dependencies = [
  "color-eyre",
  "glues-tui",
@@ -913,7 +913,7 @@ dependencies = [
 
 [[package]]
 name = "glues-core"
-version = "0.8.1"
+version = "0.8.2"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -927,7 +927,7 @@ dependencies = [
 
 [[package]]
 name = "glues-tui"
-version = "0.8.1"
+version = "0.8.2"
 dependencies = [
  "arboard",
  "async-recursion",
