@@ -57,6 +57,18 @@ impl Db {
         storage.set_remote(remote);
         storage.set_branch(branch);
 
+        // Git cannot store empty directories. FileStorage still needs each
+        // table directory when scanning a table with an existing schema file,
+        // so recreate them before schema setup queries the tables.
+        let notebook_path = std::path::Path::new(path);
+        for table in ["Log", "Meta", "Directory", "Note"] {
+            std::fs::create_dir_all(notebook_path.join(table)).map_err(|error| {
+                Error::BackendError(format!(
+                    "could not prepare Git notebook table directory {table}: {error}"
+                ))
+            })?;
+        }
+
         let mut storage = Storage::Git(Glue::new(storage));
         let root_id = setup(&mut storage).await?;
 

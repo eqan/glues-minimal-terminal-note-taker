@@ -130,7 +130,12 @@ pub fn keymap() -> Vec<KeymapGroup> {
     let items = vec![
         KeymapItem::new("Tab", "Browse notes"),
         KeymapItem::new("t", "Enter toggle-tabs mode"),
-        KeymapItem::new("i", "Enter insert mode"),
+        KeymapItem::new("i", "Insert before cursor"),
+        KeymapItem::new("a", "Insert after cursor"),
+        KeymapItem::new("I", "Insert at line start"),
+        KeymapItem::new("A", "Insert at line end"),
+        KeymapItem::new("o", "Insert line below"),
+        KeymapItem::new("O", "Insert line above"),
         KeymapItem::new("v", "Enter visual mode"),
         KeymapItem::new("z", "Enter scroll mode"),
         KeymapItem::new("Ctrl+h", "Show Vim keymap"),

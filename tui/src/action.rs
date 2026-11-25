@@ -355,6 +355,12 @@ fn to_event(input: Input) -> Option<KeyEvent> {
     let code = key.code;
     let ctrl = key.modifiers.ctrl;
 
+    // Do not reinterpret control chords as their plain Vim letter. In
+    // particular, Ctrl+S must not become `s` (substitute and enter insert).
+    if ctrl && !matches!(code, KeyCode::Char('h' | 'r')) {
+        return None;
+    }
+
     let event = match code {
         KeyCode::Char('h') if ctrl => KeyEvent::CtrlH,
         KeyCode::Char('r') if ctrl => KeyEvent::CtrlR,
@@ -422,4 +428,35 @@ fn to_event(input: Input) -> Option<KeyEvent> {
     };
 
     Some(event)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::input::{KeyEvent as TuiKeyEvent, KeyEventKind, KeyModifiers};
+
+    fn key(code: KeyCode, modifiers: KeyModifiers) -> Input {
+        Input::Key(TuiKeyEvent {
+            code,
+            modifiers,
+            kind: KeyEventKind::Press,
+        })
+    }
+
+    #[test]
+    fn ctrl_s_is_not_mapped_to_vim_substitute() {
+        assert!(to_event(key(KeyCode::Char('s'), KeyModifiers::CONTROL)).is_none());
+    }
+
+    #[test]
+    fn plain_i_and_a_keep_their_vim_insert_actions() {
+        assert!(matches!(
+            to_event(key(KeyCode::Char('i'), KeyModifiers::NONE)),
+            Some(KeyEvent::I)
+        ));
+        assert!(matches!(
+            to_event(key(KeyCode::Char('a'), KeyModifiers::NONE)),
+            Some(KeyEvent::A)
+        ));
+    }
 }
