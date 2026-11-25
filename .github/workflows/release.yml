@@ -17,10 +17,6 @@ jobs:
             asset: linux-x86_64
             binary: glues
             filename: glues-linux-x86_64
-          - runner: macos-14
-            asset: macos-aarch64
-            binary: glues
-            filename: glues-macos-aarch64
           - runner: windows-latest
             asset: windows-x86_64
             binary: glues.exe
