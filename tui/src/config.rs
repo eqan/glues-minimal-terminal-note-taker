@@ -26,12 +26,47 @@ fn config_file() -> PathBuf {
     config_dir().join("config")
 }
 
+fn parse_csv_row(row: &str) -> Option<(String, String)> {
+    let mut fields = Vec::with_capacity(2);
+    let mut field = String::new();
+    let mut quoted = false;
+    let mut chars = row.chars().peekable();
+
+    while let Some(character) = chars.next() {
+        match character {
+            '"' if quoted && chars.peek() == Some(&'"') => {
+                chars.next();
+                field.push('"');
+            }
+            '"' => quoted = !quoted,
+            ',' if !quoted => {
+                fields.push(std::mem::take(&mut field));
+            }
+            _ => field.push(character),
+        }
+    }
+
+    if quoted {
+        return None;
+    }
+    fields.push(field);
+    (fields.len() == 2).then(|| (fields.remove(0), fields.remove(0)))
+}
+
 fn read_values() -> BTreeMap<String, String> {
-    fs::read_to_string(config_file())
+    if let Ok(content) = fs::read_to_string(config_file()) {
+        return content
+            .lines()
+            .filter_map(|line| line.split_once('='))
+            .map(|(key, value)| (key.to_owned(), value.to_owned()))
+            .collect();
+    }
+
+    fs::read_to_string(config_dir().join("config.csv"))
         .unwrap_or_default()
         .lines()
-        .filter_map(|line| line.split_once('='))
-        .map(|(key, value)| (key.to_owned(), value.to_owned()))
+        .skip(1)
+        .filter_map(parse_csv_row)
         .collect()
 }
 
@@ -63,4 +98,21 @@ pub async fn update(key: &str, value: &str) {
 
 pub async fn get(key: &str) -> Option<String> {
     read_values().remove(key)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_csv_row;
+
+    #[test]
+    fn parses_legacy_csv_values_with_commas() {
+        assert_eq!(
+            parse_csv_row("last_git_path,/home/e/notes"),
+            Some(("last_git_path".to_owned(), "/home/e/notes".to_owned()))
+        );
+        assert_eq!(
+            parse_csv_row(r#"last_file_path,"/home/e/My, Notes""#),
+            Some(("last_file_path".to_owned(), "/home/e/My, Notes".to_owned()))
+        );
+    }
 }
