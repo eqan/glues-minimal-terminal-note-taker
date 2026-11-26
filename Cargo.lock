@@ -904,7 +904,7 @@ dependencies = [
 
 [[package]]
 name = "glues"
-version = "0.8.3"
+version = "0.8.4"
 dependencies = [
  "color-eyre",
  "glues-tui",
@@ -913,7 +913,7 @@ dependencies = [
 
 [[package]]
 name = "glues-core"
-version = "0.8.3"
+version = "0.8.4"
 dependencies = [
  "async-recursion",
  "async-trait",
@@ -927,7 +927,7 @@ dependencies = [
 
 [[package]]
 name = "glues-tui"
-version = "0.8.3"
+version = "0.8.4"
 dependencies = [
  "arboard",
  "async-recursion",
@@ -2341,6 +2341,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0a5318dd619ed73c52a9417ad19046724effc1287fb75cdcc4eca1d6ac1acbae"
 dependencies = [
  "ratatui",
+ "regex",
  "unicode-width 0.2.0",
 ]
 

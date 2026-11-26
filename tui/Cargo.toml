@@ -18,7 +18,7 @@ glues-core.workspace = true
 async-recursion.workspace = true
 color-eyre = "0.6.3"
 tui-big-text = "0.7.0"
-tui-textarea = { version = "0.7.0", default-features = false, features = ["ratatui"] }
+tui-textarea = { version = "0.7.0", default-features = false, features = ["ratatui", "search"] }
 textwrap = "0.16"
 pulldown-cmark = "0.13.6"
 arboard = "3.4.1"

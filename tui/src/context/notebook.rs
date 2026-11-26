@@ -82,6 +82,9 @@ pub struct NotebookContext {
     pub editor_height: u16,
     pub markdown_preview: bool,
     pub markdown_preview_scroll: u16,
+    pub wrap_content: bool,
+    pub last_search: Option<String>,
+    pub last_search_backward: bool,
     pub tabs: Vec<Tab>,
     pub tab_index: Option<usize>,
     pub editors: HashMap<NoteId, EditorItem>,
@@ -111,6 +114,9 @@ impl Default for NotebookContext {
             editor_height: 0,
             markdown_preview: false,
             markdown_preview_scroll: 0,
+            wrap_content: true,
+            last_search: None,
+            last_search_backward: false,
             tabs: vec![],
             tab_index: None,
             editors: HashMap::new(),
@@ -124,6 +130,23 @@ impl Default for NotebookContext {
 }
 
 impl NotebookContext {
+    pub fn search(&mut self, pattern: &str, backward: bool) -> Result<bool, String> {
+        if pattern.is_empty() {
+            return Ok(true);
+        }
+
+        let found = search_text_area(self.get_editor_mut(), pattern, backward)?;
+        self.last_search = Some(pattern.to_owned());
+        self.last_search_backward = backward;
+        Ok(found)
+    }
+
+    pub fn repeat_search(&mut self, reverse: bool) -> Option<Result<bool, String>> {
+        let pattern = self.last_search.clone()?;
+        let backward = self.last_search_backward ^ reverse;
+        Some(search_text_area(self.get_editor_mut(), &pattern, backward))
+    }
+
     pub fn get_opened_note(&self) -> Option<&Note> {
         self.tab_index
             .and_then(|i| self.tabs.get(i))
@@ -394,6 +417,16 @@ impl NotebookContext {
             return TuiAction::ToggleSidePane.into();
         }
 
+        if let Input::Key(key) = input
+            && key.code == KeyCode::F(2)
+            && !key.modifiers.ctrl
+            && !key.modifiers.alt
+            && (self.markdown_preview || self.state.is_editor())
+        {
+            self.wrap_content = !self.wrap_content;
+            return Action::None;
+        }
+
         if self.markdown_preview {
             return self.consume_on_markdown_preview(input);
         }
@@ -505,6 +538,18 @@ impl NotebookContext {
         }
 
         match code {
+            KeyCode::Char('/') if idle => TuiAction::Prompt {
+                message: vec![Line::raw("Search forward:")],
+                action: Box::new(TuiAction::Search { backward: false }.into()),
+                default: self.last_search.clone(),
+            }
+            .into(),
+            KeyCode::Char('n') if idle && self.last_search.is_some() => {
+                TuiAction::RepeatSearch { reverse: false }.into()
+            }
+            KeyCode::Char('N') if idle && self.last_search.is_some() => {
+                TuiAction::RepeatSearch { reverse: true }.into()
+            }
             KeyCode::Esc if idle => TuiAction::OpenNotebookQuitMenu {
                 save_before_open: true,
             }
@@ -640,5 +685,88 @@ impl NotebookContext {
             KeyCode::Esc => Action::Dispatch(NotebookEvent::CloseDirectoryActionsDialog.into()),
             _ => Action::PassThrough,
         }
+    }
+}
+
+fn search_text_area(
+    editor: &mut TextArea<'_>,
+    pattern: &str,
+    backward: bool,
+) -> Result<bool, String> {
+    editor
+        .set_search_pattern(pattern)
+        .map_err(|error| error.to_string())?;
+    Ok(if backward {
+        editor.search_back(false)
+    } else {
+        editor.search_forward(false)
+    })
+}
+
+#[cfg(test)]
+mod search_tests {
+    use super::search_text_area;
+    use super::{ContextState, NotebookContext};
+    use crate::{
+        action::Action,
+        input::{Input, KeyCode, KeyEvent, KeyEventKind, KeyModifiers},
+    };
+    use tui_textarea::{CursorMove, TextArea};
+
+    #[test]
+    fn forward_regex_search_finds_next_match_and_wraps() {
+        let mut editor = TextArea::from(["one two one", "one"]);
+        assert!(search_text_area(&mut editor, "o+ne", false).unwrap());
+        assert_eq!(editor.cursor(), (0, 8));
+        assert!(search_text_area(&mut editor, "o+ne", false).unwrap());
+        assert_eq!(editor.cursor(), (1, 0));
+        assert!(search_text_area(&mut editor, "o+ne", false).unwrap());
+        assert_eq!(editor.cursor(), (0, 0));
+    }
+
+    #[test]
+    fn backward_search_finds_previous_match_and_wraps() {
+        let mut editor = TextArea::from(["one two one", "one"]);
+        editor.move_cursor(CursorMove::Jump(1, 0));
+        assert!(search_text_area(&mut editor, "one", true).unwrap());
+        assert_eq!(editor.cursor(), (0, 8));
+        assert!(search_text_area(&mut editor, "one", true).unwrap());
+        assert_eq!(editor.cursor(), (0, 0));
+        assert!(search_text_area(&mut editor, "one", true).unwrap());
+        assert_eq!(editor.cursor(), (1, 0));
+    }
+
+    #[test]
+    fn search_supports_regular_expressions_and_rejects_invalid_patterns() {
+        let mut editor = TextArea::from(["one two", "three"]);
+        assert!(search_text_area(&mut editor, "(one|three)", false).unwrap());
+        assert_eq!(editor.cursor(), (1, 0));
+        assert!(search_text_area(&mut editor, "(", false).is_err());
+    }
+
+    #[test]
+    fn missing_search_returns_none() {
+        let mut editor = TextArea::from(["notes"]);
+        assert!(!search_text_area(&mut editor, "absent", false).unwrap());
+    }
+
+    #[test]
+    fn f2_toggles_content_wrapping_in_the_editor_and_preview() {
+        let mut context = NotebookContext {
+            state: ContextState::EditorNormalMode { idle: true },
+            ..NotebookContext::default()
+        };
+        let f2 = Input::Key(KeyEvent {
+            code: KeyCode::F(2),
+            modifiers: KeyModifiers::NONE,
+            kind: KeyEventKind::Press,
+        });
+
+        assert!(matches!(context.consume(&f2), Action::None));
+        assert!(!context.wrap_content);
+
+        context.markdown_preview = true;
+        assert!(matches!(context.consume(&f2), Action::None));
+        assert!(context.wrap_content);
     }
 }

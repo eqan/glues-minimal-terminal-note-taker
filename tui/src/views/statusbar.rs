@@ -34,7 +34,11 @@ pub fn draw(frame: &mut Frame, area: Rect, state: &State, context: &NotebookCont
         Line::from(vec![
             Span::raw("").fg(THEME.success).bg(THEME.panel),
             Span::raw(if preview_mode {
-                " [Ctrl+O / Ctrl+\\] Pane · [Ctrl+P] Edit "
+                if context.wrap_content {
+                    " [F2] Wrap on · [Ctrl+P] Edit "
+                } else {
+                    " [F2] Wrap off · [Ctrl+P] Edit "
+                }
             } else if normal_editor {
                 " [Ctrl+O / Ctrl+\\] Pane · [Ctrl+P] Preview "
             } else if insert_mode {

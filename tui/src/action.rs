@@ -53,6 +53,12 @@ pub enum TuiAction {
 
     OpenFile,
     OpenGit(OpenGitStep),
+    Search {
+        backward: bool,
+    },
+    RepeatSearch {
+        reverse: bool,
+    },
 
     RenameNote,
     RemoveNote,
@@ -155,6 +161,37 @@ impl App {
                 default,
             }) => {
                 self.context.prompt = Some(ContextPrompt::new(message, *action, default));
+            }
+            Action::Tui(TuiAction::Search { backward }) => {
+                let pattern = self
+                    .context
+                    .take_prompt_input()
+                    .log_expect("search prompt must be open");
+                if !pattern.is_empty() {
+                    match self.context.notebook.search(&pattern, backward) {
+                        Ok(true) => {}
+                        Ok(false) => {
+                            self.context.alert = Some(format!("Pattern not found: {pattern}"));
+                        }
+                        Err(error) => {
+                            self.context.alert = Some(format!("Invalid pattern: {error}"))
+                        }
+                    }
+                }
+            }
+            Action::Tui(TuiAction::RepeatSearch { reverse }) => {
+                match self.context.notebook.repeat_search(reverse) {
+                    Some(Ok(true)) => {}
+                    Some(Ok(false)) => {
+                        if let Some(pattern) = &self.context.notebook.last_search {
+                            self.context.alert = Some(format!("Pattern not found: {pattern}"));
+                        }
+                    }
+                    Some(Err(error)) => {
+                        self.context.alert = Some(format!("Invalid pattern: {error}"));
+                    }
+                    None => {}
+                }
             }
             Action::Tui(TuiAction::OpenGit(OpenGitStep::Path)) => {
                 let path = self

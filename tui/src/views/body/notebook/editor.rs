@@ -153,14 +153,17 @@ pub fn draw(frame: &mut Frame, area: Rect, context: &mut Context) {
         let markdown = super::markdown::render(&content);
         let preview_block = block.padding(Padding::left(1));
 
-        frame.render_widget(
-            Paragraph::new(markdown)
-                .block(preview_block)
-                .style(Style::default().fg(THEME.text).bg(THEME.background))
-                .wrap(Wrap { trim: false })
-                .scroll((context.notebook.markdown_preview_scroll, 0)),
-            area,
-        );
+        let paragraph = Paragraph::new(markdown)
+            .block(preview_block)
+            .style(Style::default().fg(THEME.text).bg(THEME.background));
+        let paragraph = if context.notebook.wrap_content {
+            paragraph.wrap(Wrap { trim: false })
+        } else {
+            paragraph
+        }
+        .scroll((context.notebook.markdown_preview_scroll, 0));
+
+        frame.render_widget(paragraph, area);
 
         return;
     }
