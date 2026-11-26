@@ -6,7 +6,7 @@ use {color_eyre::Result, glues_tui::input::KeyCode, tester::Tester, tui_textarea
 #[tokio::test]
 async fn slash_search_and_vim_repeat_keys_move_between_matches() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
     t.open_first_note().await?;
 
     {

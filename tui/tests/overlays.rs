@@ -7,7 +7,7 @@ use color_eyre::Result;
 #[tokio::test]
 async fn keymap_toggles() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // show keymap
     t.press('?').await;

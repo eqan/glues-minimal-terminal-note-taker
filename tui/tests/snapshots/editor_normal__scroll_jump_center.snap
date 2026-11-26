@@ -3,10 +3,10 @@ source: tui/tests/editor_normal.rs
 expression: text
 snapshot_kind: text
 ---
- Note 'Sample Note' normal mode                                                      [Ctrl+O / Ctrl+\] Pane · [Ctrl+P] 
 [Browser]                                   ▐ 󱇗 Sample Note                                                             
- 󰝰 Notes                                    ▐ 27 Line 27 — the quick brown fox jumps over the lazy dog.                 
-   󱇗 Sample Note                            ▐ 28 Line 28 — the quick brown fox jumps over the lazy dog.                 
+ 󰝰 Notes                                    ▐ 26 Line 26 — the quick brown fox jumps over the lazy dog.                 
+   󱇗 Sample Note                            ▐ 27 Line 27 — the quick brown fox jumps over the lazy dog.                 
+                                            ▐ 28 Line 28 — the quick brown fox jumps over the lazy dog.                 
                                             ▐ 29 Line 29 — the quick brown fox jumps over the lazy dog.                 
                                             ▐ 30 Line 30 — the quick brown fox jumps over the lazy dog.                 
                                             ▐ 31 Line 31 — the quick brown fox jumps over the lazy dog.                 
@@ -42,4 +42,4 @@ snapshot_kind: text
                                             ▐                                                                           
                                             ▐                                                                           
                                             ▐                                                                           
-                                            ▐ NORMAL   󰝰 Notes  󱇗 Sample Note 
+                                            ▐ NORMAL  [F2] Wrap on                     Ctrl+O/\ Pane · Ctrl+P Preview

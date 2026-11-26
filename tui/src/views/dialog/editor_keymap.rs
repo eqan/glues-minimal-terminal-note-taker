@@ -44,6 +44,7 @@ pub fn draw(frame: &mut Frame) {
 | `Ctrl+C`, `Copy`                              | Copy selected text                         |
 | `Ctrl+X`, `Cut`                               | Cut selected text                          |
 | `Ctrl+Y`, `Paste`                             | Paste yanked text                          |
+| `Ctrl+V`                                      | Paste clipboard text or insert a clipboard image |
 | `Ctrl+F`, `→`                                 | Move cursor forward by one character       |
 | `Ctrl+B`, `←`                                 | Move cursor backward by one character      |
 | `Ctrl+P`, `↑`                                 | Move cursor up by one line                 |
@@ -56,7 +57,7 @@ pub fn draw(frame: &mut Frame) {
 | `Ctrl+A`, `Home`, `Ctrl+Alt+B`, `Ctrl+Alt+←`  | Move cursor to the head of line            |
 | `Alt+<`, `Ctrl+Alt+P`, `Ctrl+Alt+↑`           | Move cursor to top of lines                |
 | `Alt+>`, `Ctrl+Alt+N`, `Ctrl+Alt+↓`           | Move cursor to bottom of lines             |
-| `Ctrl+V`, `PageDown`                          | Scroll down by page                        |
+| `PageDown`                                    | Scroll down by page                        |
 | `Alt+V`, `PageUp`                             | Scroll up by page                          |
 
 Thanks to tui-textarea

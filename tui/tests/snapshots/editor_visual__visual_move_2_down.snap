@@ -3,7 +3,6 @@ source: tui/tests/editor_visual.rs
 expression: text
 snapshot_kind: text
 ---
- Note 'Sample Note' visual mode                                                      [Ctrl+O / Ctrl+\] Pane · [?] Keyma
 [Browser]                                   ▐ 󱇗 Sample Note                                                             
  󰝰 Notes                                    ▐ 1 Hi :D                                                                   
    󱇗 Sample Note                            ▐                                                                           
@@ -42,4 +41,5 @@ snapshot_kind: text
                                             ▐                                                                           
                                             ▐                                                                           
                                             ▐                                                                           
-                                            ▐ VISUAL   󰝰 Notes  󱇗 Sample Note 
+                                            ▐                                                                           
+                                            ▐ VISUAL  [F2] Wrap on                     Ctrl+O/\ Pane · Ctrl+P Preview

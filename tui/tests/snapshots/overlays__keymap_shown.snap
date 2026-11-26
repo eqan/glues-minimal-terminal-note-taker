@@ -1,18 +1,17 @@
 ---
 source: tui/tests/overlays.rs
-assertion_line: 15
 expression: text
 snapshot_kind: text
 ---
- Directory 'Notes' selected                                                                            [?] Hide keymap 
-[Browser]                                   ▐[Editor]                                                                   
- 󰝰 Notes                                    ▐ 1 Welcome to Glues!           General                                     
-   󱇗 Sample Note                            ▐ 2                             [l]       Toggle directory                  
-                                            ▐ 3 Press `?` to see keymaps a  [h]       Close parent directory            
-                                            ▐ 4 Press `m` in the note tree  [j]       Select next                       
-                                            ▐ 5 Press `Enter` on a note to  [k]       Select previous                   
-                                            ▐ 6                             [J]       Select next directory             
-                                            ▐ 7 GitHub: https://github.com  [K]       Select previous directory         
+[Browser]                                   ▐[Editor]                                                  [?] Hide keymap 
+ 󰝰 Notes                                    ▐ 1 Welcome to Glues!                                                       
+   󱇗 Sample Note                            ▐ 2                             General                                     
+                                            ▐ 3 Press `?` to see keymaps a  [l]       Toggle directory                  
+                                            ▐ 4 Press `m` in the note tree  [h]       Close parent directory            
+                                            ▐ 5 Press `Enter` on a note to  [j]       Select next                       
+                                            ▐ 6                             [k]       Select previous                   
+                                            ▐ 7 GitHub: https://github.com  [J]       Select next directory             
+                                            ▐                               [K]       Select previous directory         
                                             ▐                               [G]       Select last                       
                                             ▐                               [1-9]     Add steps                         
                                             ▐                               [>]       Expand width                      

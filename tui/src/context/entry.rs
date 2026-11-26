@@ -4,7 +4,6 @@ use {
         input::KeyCode,
         logger::*,
     },
-    glues_core::EntryEvent,
     ratatui::widgets::ListState,
 };
 
@@ -15,14 +14,13 @@ use crate::{
 };
 use ratatui::{style::Stylize, text::Line};
 
-pub const INSTANT: &str = "[i] Instant";
 pub const FILE: &str = "[l] Local";
 pub const GIT: &str = "[g] Git";
 pub const HELP: &str = "[h] Help";
 pub const THEME_MENU: &str = "[t] Theme";
 pub const QUIT: &str = "[q] Quit";
 
-pub const MENU_ITEMS: [&str; 6] = [INSTANT, FILE, GIT, HELP, THEME_MENU, QUIT];
+pub const MENU_ITEMS: [&str; 5] = [FILE, GIT, HELP, THEME_MENU, QUIT];
 
 pub struct EntryContext {
     pub list_state: ListState,
@@ -73,7 +71,6 @@ impl EntryContext {
                 self.list_state.select_previous();
                 Action::None
             }
-            KeyCode::Char('i') => EntryEvent::OpenMemory.into(),
             KeyCode::Char('l') => open(LAST_FILE_PATH, TuiAction::OpenFile).await,
             KeyCode::Char('g') => open_git().await,
             KeyCode::Char('h') => TuiAction::Help.into(),
@@ -85,7 +82,6 @@ impl EntryContext {
                     .selected()
                     .log_expect("EntryContext::consume: selected is None. This should not happen.");
                 match MENU_ITEMS[i] {
-                    INSTANT => EntryEvent::OpenMemory.into(),
                     FILE => open(LAST_FILE_PATH, TuiAction::OpenFile).await,
                     GIT => open_git().await,
                     HELP => TuiAction::Help.into(),

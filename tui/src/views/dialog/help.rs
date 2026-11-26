@@ -30,13 +30,7 @@ pub fn draw(frame: &mut Frame) {
         .areas(inner_area);
 
     let message = vec![
-        Line::from("Glues offers various storage options to suit your needs:"),
-        Line::raw(""),
-        Line::from("Instant".fg(THEME.accent_text).bg(THEME.accent)),
-        Line::raw("Data is stored in memory and only persists while the app is running."),
-        Line::raw(
-            "This option is useful for testing or temporary notes as it is entirely volatile.",
-        ),
+        Line::from("Glues stores notes in local files or a Git repository:"),
         Line::raw(""),
         Line::from("Local".fg(THEME.accent_text).bg(THEME.accent)),
         Line::raw("Notes are stored locally as separate files."),

@@ -22,7 +22,6 @@ pub enum Event {
 
 #[derive(Clone, Debug, Display)]
 pub enum EntryEvent {
-    OpenMemory,
     OpenFile(String),
     OpenGit {
         path: String,

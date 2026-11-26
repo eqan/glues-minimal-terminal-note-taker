@@ -12,7 +12,7 @@ use {
 #[tokio::test]
 async fn notebook_browser_toggle() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
     t.open_first_note().await?;
 
     t.draw()?;
@@ -32,7 +32,7 @@ async fn notebook_browser_toggle() -> Result<()> {
 #[tokio::test]
 async fn markdown_preview_renders_note_content() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
     t.open_first_note().await?;
 
     {
@@ -68,9 +68,61 @@ async fn markdown_preview_renders_note_content() -> Result<()> {
 }
 
 #[tokio::test]
+async fn clipboard_image_is_saved_linked_and_shown_in_preview() -> Result<()> {
+    let mut t = Tester::new().await?;
+    t.open_local().await?;
+    t.open_first_note().await?;
+
+    let image = arboard::ImageData {
+        width: 2,
+        height: 2,
+        bytes: vec![
+            255, 0, 0, 255, 0, 255, 0, 255, 0, 0, 255, 255, 255, 255, 255, 255,
+        ]
+        .into(),
+    };
+    let link = t
+        .app
+        .context_mut()
+        .notebook
+        .insert_clipboard_image(image)
+        .expect("clipboard image should be written into the notebook");
+    let notebook_path = t
+        .app
+        .context_mut()
+        .notebook
+        .storage_path
+        .clone()
+        .expect("local notebook path should be set");
+    let relative_path = link
+        .split_once("](")
+        .expect("image Markdown link should have a destination")
+        .1
+        .trim_end_matches(')');
+    assert_eq!(
+        image::image_dimensions(notebook_path.join(relative_path))?,
+        (2, 2)
+    );
+    assert!(
+        t.app
+            .context_mut()
+            .notebook
+            .get_editor()
+            .lines()
+            .join("\n")
+            .contains(&link)
+    );
+
+    t.app.context_mut().notebook.markdown_preview = true;
+    t.draw()?;
+    assert!(t.snapshot_text().contains('▀'));
+    Ok(())
+}
+
+#[tokio::test]
 async fn notebook_editor_states() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
     t.open_first_note().await?;
 
     t.press('i').await;
@@ -173,7 +225,7 @@ async fn vim_keymap_variants() -> Result<()> {
     use ContextState::*;
 
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
     t.open_first_note().await?;
 
     let cases = [

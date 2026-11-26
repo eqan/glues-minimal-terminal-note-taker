@@ -8,7 +8,7 @@ use glues_tui::input::KeyCode;
 #[tokio::test]
 async fn opens_note_on_l() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // select first note and open
     t.press('j').await;
@@ -24,7 +24,7 @@ async fn opens_note_on_l() -> Result<()> {
 #[tokio::test]
 async fn numbering_steps_move_next_prev() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // enter numbering with '2'
     t.press('2').await;
@@ -48,7 +48,7 @@ async fn numbering_steps_move_next_prev() -> Result<()> {
 #[tokio::test]
 async fn gateway_mode_enter_and_first_select() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // enter gateway mode from directory selection
     t.press('g').await;
@@ -66,7 +66,7 @@ async fn gateway_mode_enter_and_first_select() -> Result<()> {
 #[tokio::test]
 async fn move_mode_enter_and_cancel_on_directory() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // enter move mode on directory (Space)
     t.key(KeyCode::Char(' ')).await;
@@ -84,7 +84,7 @@ async fn move_mode_enter_and_cancel_on_directory() -> Result<()> {
 #[tokio::test]
 async fn move_mode_enter_and_cancel_on_note() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // select a note and enter move mode
     t.press('j').await;
@@ -103,7 +103,7 @@ async fn move_mode_enter_and_cancel_on_note() -> Result<()> {
 #[tokio::test]
 async fn add_note_via_directory_actions() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // open directory actions on root and choose Add note
     t.press('m').await;
@@ -126,7 +126,7 @@ async fn add_note_via_directory_actions() -> Result<()> {
 #[tokio::test]
 async fn add_directory_via_directory_actions() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // open directory actions on root and choose Add directory
     t.press('m').await;
@@ -149,7 +149,7 @@ async fn add_directory_via_directory_actions() -> Result<()> {
 #[tokio::test]
 async fn rename_note_prompt_and_apply() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // select first note and open note actions: default selection is Rename note
     t.press('j').await;
@@ -175,7 +175,7 @@ async fn rename_note_prompt_and_apply() -> Result<()> {
 #[tokio::test]
 async fn remove_note_confirm_cancel_then_accept() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // select note, open note actions, move to Remove note
     t.press('j').await;
@@ -204,7 +204,7 @@ async fn remove_note_confirm_cancel_then_accept() -> Result<()> {
 #[tokio::test]
 async fn remove_directory_confirm_cancel_then_accept() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // first add a directory so we can remove it
     t.press('m').await;
@@ -249,7 +249,7 @@ async fn remove_directory_confirm_cancel_then_accept() -> Result<()> {
 #[tokio::test]
 async fn note_actions_dialog_toggles() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // select note to enable note actions
     t.press('j').await;
@@ -270,7 +270,7 @@ async fn note_actions_dialog_toggles() -> Result<()> {
 #[tokio::test]
 async fn dir_actions_dialog_toggles() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // on root directory selection, open directory actions dialog
     t.press('m').await;

@@ -7,9 +7,8 @@ use {
         Frame,
         layout::{Alignment, Constraint::Length, Flex, Layout, Rect},
         style::{Style, Stylize},
-        widgets::{Block, HighlightSpacing, List, ListDirection, Padding},
+        widgets::{Block, HighlightSpacing, List, ListDirection, Padding, Paragraph},
     },
-    tui_big_text::BigText,
 };
 
 pub fn draw(frame: &mut Frame, area: Rect, context: &mut EntryContext) {
@@ -23,9 +22,10 @@ pub fn draw(frame: &mut Frame, area: Rect, context: &mut EntryContext) {
         .flex(Flex::Center)
         .areas(area);
 
-    let title = BigText::builder()
-        .lines(vec!["Glues".fg(THEME.accent).into()])
-        .build();
+    let title = Paragraph::new("Glues")
+        .style(Style::new().fg(THEME.accent).bold())
+        .alignment(Alignment::Center)
+        .block(Block::new().padding(Padding::top(4)));
     let block = Block::bordered()
         .fg(THEME.text)
         .padding(Padding::new(2, 2, 1, 1))

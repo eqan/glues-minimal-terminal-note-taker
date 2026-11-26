@@ -1,6 +1,6 @@
 # Glues Minimal
 
-A Vim-inspired terminal note-taking app with Instant, Local, and Git storage. Notes support Markdown, including tables, lists, links, and code blocks.
+A Vim-inspired terminal note-taking app with Local and Git storage. Notes support Markdown, including tables, lists, links, and code blocks.
 
 ## Download
 
@@ -26,7 +26,6 @@ glues
 
 ## Storage
 
-- **Instant** keeps notes in memory until the app exits.
 - **Local** stores notes as files in the selected directory.
 - **Git** stores notes in an existing Git repository and syncs through its configured remote and branch.
 
@@ -35,6 +34,7 @@ The last-used paths, Git settings, theme, and application log are saved under `~
 ## Shortcuts
 
 - `Ctrl+P` toggles Markdown preview in the note pane.
+- `Ctrl+V` in insert mode pastes clipboard text or saves a clipboard image into the notebook and inserts a Markdown image link.
 - `Ctrl+O` or `Ctrl+\` toggles the side pane. Either shortcut hides or restores it.
 
 ## Development

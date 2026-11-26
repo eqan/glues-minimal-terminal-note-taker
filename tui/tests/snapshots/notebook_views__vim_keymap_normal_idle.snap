@@ -3,10 +3,10 @@ source: tui/tests/notebook_views.rs
 expression: text
 snapshot_kind: text
 ---
- Note 'Sample N┌─────────────────────────────────VIM NORMAL MODE KEYMAP─────────────────────────────────┐ane · [Ctrl+P] 
-[Browser]      │                                                                                        │               
- 󰝰 Notes       │  TO INSERT MODE                                                                        │               
-   󱇗 Sample Not│  [i] Go to insert mode                                                                 │               
+[Browser]      ┌─────────────────────────────────VIM NORMAL MODE KEYMAP─────────────────────────────────┐               
+ 󰝰 Notes       │                                                                                        │               
+   󱇗 Sample Not│  TO INSERT MODE                                                                        │               
+               │  [i] Go to insert mode                                                                 │               
                │  [I] Go to insert mode at the beginning of the line                                    │               
                │  [o] Insert a new line below and go to insert mode                                     │               
                │  [O] Insert a new line above and go to insert mode                                     │               
@@ -18,6 +18,7 @@ snapshot_kind: text
                │  TO OTHER MODES                                                                        │               
                │  [c] Go to change mode (prepare to edit text)                                          │               
                │  [v] Go to visual mode (select text to edit or copy)                                   │               
+               │  [V] Select whole lines (linewise visual mode)                                         │               
                │  [g] Go to gateway mode (access extended commands)                                     │               
                │  [y] Go to yank mode (prepare to copy text)                                            │               
                │  [d] Go to delete mode (prepare to delete text)                                        │               
@@ -25,6 +26,8 @@ snapshot_kind: text
                │  [1-9] Go to numbering mode (repeat or extend actions with numbers)                    │               
                │                                                                                        │               
                │  MOVE CURSOR                                                                           │               
+               │  [v] Switch to characterwise visual mode                                               │               
+               │  [V] Switch to linewise visual mode                                                    │               
                │  [h] Move cursor left                                                                  │               
                │  [j] Move cursor down                                                                  │               
                │  [k] Move cursor up                                                                    │               
@@ -37,9 +40,6 @@ snapshot_kind: text
                │  [^] Move cursor to the first non-blank character of the line                          │               
                │  [G] Move cursor to the end of the file                                                │               
                │                                                                                        │               
-               │  EDIT TEXT                                                                             │               
-               │  [~] Toggle the case of the current character                                          │               
-               │  [x] Delete character under the cursor                                                 │               
                │                                 Press any key to close                                 │               
                │                                                                                        │               
-               └────────────────────────────────────────────────────────────────────────────────────────┘
+               └────────────────────────────────────────────────────────────────────────────────────────┘Ctrl+P Preview

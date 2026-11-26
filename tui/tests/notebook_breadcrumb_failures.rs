@@ -11,7 +11,7 @@ use {
 #[tokio::test]
 async fn closing_tab_then_reopening_still_panics() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     t.press('j').await;
     t.press('l').await;
@@ -65,7 +65,7 @@ async fn closing_tab_then_reopening_still_panics() -> Result<()> {
 #[tokio::test]
 async fn moving_note_between_directories_still_panics() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     t.press('j').await;
     t.press('l').await;
@@ -138,7 +138,7 @@ async fn moving_note_between_directories_still_panics() -> Result<()> {
 #[tokio::test]
 async fn moving_note_into_external_directory_updates_tree() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     t.press('j').await;
     t.press('l').await;

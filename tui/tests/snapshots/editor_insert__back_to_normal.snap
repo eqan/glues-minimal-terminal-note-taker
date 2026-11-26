@@ -3,7 +3,6 @@ source: tui/tests/editor_insert.rs
 expression: text
 snapshot_kind: text
 ---
- Note 'Sample Note' normal mode                                                      [Ctrl+O / Ctrl+\] Pane · [Ctrl+P] 
 [Browser]                                   ▐ 󱇗 Sample Note                                                             
  󰝰 Notes                                    ▐ 1 HelloHi :D                                                              
    󱇗 Sample Note                            ▐                                                                           
@@ -42,4 +41,5 @@ snapshot_kind: text
                                             ▐                                                                           
                                             ▐                                                                           
                                             ▐                                                                           
-                                            ▐ NORMAL   󰝰 Notes  󱇗 Sample Note                           󰔚 Saving...
+                                            ▐                                                                           
+                                            ▐ NORMAL  [F2] Wrap on      󰔚 Saving...   Ctrl+O/\ Pane · Ctrl+P Preview

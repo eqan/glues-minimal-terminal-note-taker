@@ -13,7 +13,7 @@ use {
         types::{Id, NoteId},
     },
     ratatui::{text::Line, widgets::ListState},
-    std::collections::HashMap,
+    std::{collections::HashMap, path::PathBuf},
     tui_textarea::TextArea,
 };
 
@@ -83,6 +83,8 @@ pub struct NotebookContext {
     pub markdown_preview: bool,
     pub markdown_preview_scroll: u16,
     pub wrap_content: bool,
+    pub visual_linewise: bool,
+    pub storage_path: Option<PathBuf>,
     pub last_search: Option<String>,
     pub last_search_backward: bool,
     pub tabs: Vec<Tab>,
@@ -115,6 +117,8 @@ impl Default for NotebookContext {
             markdown_preview: false,
             markdown_preview_scroll: 0,
             wrap_content: true,
+            visual_linewise: false,
+            storage_path: None,
             last_search: None,
             last_search_backward: false,
             tabs: vec![],
@@ -400,6 +404,32 @@ impl NotebookContext {
         self.yank = Some(text);
     }
 
+    pub fn paste_from_clipboard(&mut self) -> Result<(), String> {
+        let mut clipboard = Clipboard::new().map_err(|error| error.to_string())?;
+        if let Ok(image) = clipboard.get_image() {
+            self.insert_clipboard_image(image)?;
+            return Ok(());
+        }
+
+        let text = clipboard
+            .get_text()
+            .map_err(|_| "Clipboard does not contain text or a supported image".to_owned())?;
+        self.get_editor_mut().insert_str(text);
+        self.mark_dirty();
+        Ok(())
+    }
+
+    pub fn insert_clipboard_image(&mut self, image: arboard::ImageData) -> Result<String, String> {
+        let notebook_path = self
+            .storage_path
+            .clone()
+            .ok_or_else(|| "Open a Local or Git notebook before pasting an image".to_owned())?;
+        let markdown = save_clipboard_image(&notebook_path, image)?;
+        self.get_editor_mut().insert_str(&markdown);
+        self.mark_dirty();
+        Ok(markdown)
+    }
+
     pub fn consume(&mut self, input: &Input) -> Action {
         if let Input::Key(key) = input
             && key.modifiers.ctrl
@@ -427,8 +457,43 @@ impl NotebookContext {
             return Action::None;
         }
 
+        if let Input::Key(key) = input
+            && !key.modifiers.ctrl
+            && !key.modifiers.alt
+            && !self.markdown_preview
+        {
+            let is_linewise = matches!(key.code, KeyCode::Char('V'))
+                || (key.code == KeyCode::Char('v') && key.modifiers.shift);
+            let is_charwise = key.code == KeyCode::Char('v') && !key.modifiers.shift;
+
+            match self.state {
+                ContextState::EditorNormalMode { idle: true } if is_linewise => {
+                    self.visual_linewise = true;
+                }
+                ContextState::EditorNormalMode { idle: true } if is_charwise => {
+                    self.visual_linewise = false;
+                }
+                ContextState::EditorVisualMode if is_linewise || is_charwise => {
+                    self.visual_linewise = is_linewise;
+                    if is_linewise {
+                        select_linewise(self.get_editor_mut());
+                    }
+                    return Action::None;
+                }
+                _ => {}
+            }
+        }
+
         if self.markdown_preview {
             return self.consume_on_markdown_preview(input);
+        }
+
+        if matches!(self.state, ContextState::EditorInsertMode)
+            && let Input::Paste(text) = input
+        {
+            self.get_editor_mut().insert_str(text);
+            self.mark_dirty();
+            return Action::None;
         }
 
         let code = match input {
@@ -567,6 +632,14 @@ impl NotebookContext {
     fn consume_on_editor_insert(&mut self, input: &Input) -> Action {
         match input {
             Input::Key(KeyEvent {
+                code: KeyCode::Char('v' | 'V'),
+                modifiers,
+                ..
+            }) if modifiers.ctrl => match self.paste_from_clipboard() {
+                Ok(()) => Action::None,
+                Err(error) => TuiAction::Alert(error).into(),
+            },
+            Input::Key(KeyEvent {
                 code: KeyCode::Char('p'),
                 modifiers,
                 ..
@@ -686,6 +759,41 @@ impl NotebookContext {
             _ => Action::PassThrough,
         }
     }
+}
+
+fn select_linewise(editor: &mut TextArea<'_>) {
+    let ((start_row, _), (end_row, _)) = editor.selection_range().unwrap_or_else(|| {
+        let cursor = (editor.cursor().0, editor.cursor().1);
+        (cursor, cursor)
+    });
+    editor.cancel_selection();
+    editor.move_cursor(tui_textarea::CursorMove::Jump(start_row as u16, 0));
+    editor.start_selection();
+    editor.move_cursor(tui_textarea::CursorMove::Jump(end_row as u16, 0));
+    editor.move_cursor(tui_textarea::CursorMove::End);
+}
+
+fn save_clipboard_image(
+    notebook_path: &std::path::Path,
+    image: arboard::ImageData,
+) -> Result<String, String> {
+    let width = u32::try_from(image.width).map_err(|error| error.to_string())?;
+    let height = u32::try_from(image.height).map_err(|error| error.to_string())?;
+    if width == 0 || height == 0 {
+        return Err("Clipboard image is empty".to_owned());
+    }
+
+    let asset_dir = notebook_path.join("assets");
+    std::fs::create_dir_all(&asset_dir).map_err(|error| error.to_string())?;
+    let filename = format!("{}.png", uuid::Uuid::now_v7());
+    let image_path = asset_dir.join(&filename);
+    let pixels = image::RgbaImage::from_raw(width, height, image.bytes.into_owned())
+        .ok_or_else(|| "Clipboard image data has an invalid pixel size".to_owned())?;
+    image::DynamicImage::ImageRgba8(pixels)
+        .save_with_format(&image_path, image::ImageFormat::Png)
+        .map_err(|error| error.to_string())?;
+
+    Ok(format!("![Clipboard image](assets/{filename})"))
 }
 
 fn search_text_area(

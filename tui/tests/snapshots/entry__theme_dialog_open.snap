@@ -3,7 +3,6 @@ source: tui/tests/entry.rs
 expression: text
 snapshot_kind: text
 ---
- Glues - TUI note-taking app offering complete data control and flexible storage opt [Ctrl+O / Ctrl+\] Pane · [?] Keyma
                                                                                                                         
                                                                                                                         
                                                                                                                         
@@ -13,23 +12,23 @@ snapshot_kind: text
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                           ████   ███                                                                   
-                                          ██  ██   ██                                                                   
-                                         ██        ██    ██  ██   ████    █████                                         
-                                         ██        ██    ██  ██  ██  ██  ██                                             
-                                         █┌───────────Select Theme───────────┐                                          
-                                          │                                  │█                                         
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                          Glues                                                         
+                                          ┌───────────Select Theme───────────┐                                          
+                                          │                                  │                                          
                                           │   [d] Dark                       │                                          
                                           │   [l] Light                      │                                          
-                                          │   [p] Pastel                     │                                          
-                                         ┌│   [s] Sunrise                    │┐                                         
+                                         ┌│   [p] Pastel                     │┐                                         
+                                         ││   [s] Sunrise                    ││                                         
                                          ││   [m] Midnight                   ││                                         
                                          ││   [f] Forest                     ││                                         
                                          ││                                  ││                                         
                                          ││    [Enter] Apply  [Esc] Cancel   ││                                         
                                          ││                                  ││                                         
                                          │└──────────────────────────────────┘│                                         
-                                         │   [q] Quit                         │                                         
                                          │                                    │                                         
                                          │                                    │                                         
                                          │                                    │                                         

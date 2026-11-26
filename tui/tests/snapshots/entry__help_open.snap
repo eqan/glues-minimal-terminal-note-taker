@@ -3,15 +3,11 @@ source: tui/tests/entry.rs
 expression: text
 snapshot_kind: text
 ---
- Glues - TUI note-taking app offering complete data control and flexible storage opt [Ctrl+O / Ctrl+\] Pane · [?] Keyma
+                                                                                                                        
                                                                                                                         
 ┌─────────────────────────────────────────────────────────Help─────────────────────────────────────────────────────────┐
 │                                                                                                                      │
-│  Glues offers various storage options to suit your needs:                                                            │
-│                                                                                                                      │
-│  Instant                                                                                                             │
-│  Data is stored in memory and only persists while the app is running.                                                │
-│  This option is useful for testing or temporary notes as it is entirely volatile.                                    │
+│  Glues stores notes in local files or a Git repository:                                                              │
 │                                                                                                                      │
 │  Local                                                                                                               │
 │  Notes are stored locally as separate files.                                                                         │
@@ -23,6 +19,10 @@ snapshot_kind: text
 │  For example, you can clone a GitHub repository and use that path.                                                   │
 │  The `remote` and `branch` specify the target remote repository and branch for synchronization.                      │
 │  When you modify notes or directories, Glues will automatically sync changes with the specified remote repository.   │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
+│                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │
 │                                                                                                                      │

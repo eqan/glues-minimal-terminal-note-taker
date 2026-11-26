@@ -1,12 +1,21 @@
 use glues_core::backend::{CoreBackend, local::Db};
-use std::sync::mpsc::channel;
+use std::{sync::mpsc::channel, time::SystemTime};
 
 #[tokio::test]
-async fn memory_backend_operations() {
+async fn local_backend_operations() {
+    let path = std::env::temp_dir().join(format!(
+        "glues-core-backend-{}-{}",
+        std::process::id(),
+        SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .expect("system clock should be after the Unix epoch")
+            .as_nanos()
+    ));
+    std::fs::create_dir_all(&path).expect("local test directory should be created");
     let (tx, _rx) = channel();
-    let mut db = Db::memory(tx)
+    let mut db = Db::file(tx, path.to_str().expect("temporary path is UTF-8"))
         .await
-        .expect("in-memory backend should initialize");
+        .expect("local backend should initialize");
 
     let root_id = db.root_id();
     let root = db
@@ -99,4 +108,6 @@ async fn memory_backend_operations() {
     db.log("test".to_owned(), "message".to_owned())
         .await
         .expect("backend should append log entry");
+    drop(db);
+    std::fs::remove_dir_all(path).expect("local test directory should be removed");
 }

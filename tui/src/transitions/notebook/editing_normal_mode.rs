@@ -203,7 +203,7 @@ impl App {
             }
             DeleteLines(n) => {
                 let editor = self.context.notebook.get_editor_mut();
-                let (row, _) = editor.cursor();
+                let row = editor.cursor().0;
 
                 editor.move_cursor(CursorMove::Head);
                 editor.start_selection();
@@ -228,7 +228,7 @@ impl App {
             }
             DeleteLinesUp(n) => {
                 let editor = self.context.notebook.get_editor_mut();
-                let (row, _) = editor.cursor();
+                let row = editor.cursor().0;
 
                 let start_row = row.saturating_sub(n - 1);
                 editor.move_cursor(CursorMove::Jump(start_row as u16, 0));
@@ -330,7 +330,8 @@ impl App {
             ScrollCenter => {
                 let height = self.context.notebook.editor_height;
                 let editor = self.context.notebook.get_editor_mut();
-                let (row, col) = editor.cursor();
+                let row = editor.cursor().0;
+                let col = editor.cursor().1;
                 editor.scroll((i16::MIN / 2, 0));
                 editor.scroll(Scrolling::Delta {
                     rows: (row as i16 - height as i16 / 2),
@@ -340,7 +341,8 @@ impl App {
             }
             ScrollTop => {
                 let editor = self.context.notebook.get_editor_mut();
-                let (row, col) = editor.cursor();
+                let row = editor.cursor().0;
+                let col = editor.cursor().1;
                 editor.move_cursor(CursorMove::Top);
                 editor.scroll(Scrolling::Delta {
                     rows: row as i16,
@@ -351,7 +353,8 @@ impl App {
             }
             ScrollBottom => {
                 let editor = self.context.notebook.get_editor_mut();
-                let (row, col) = editor.cursor();
+                let row = editor.cursor().0;
+                let col = editor.cursor().1;
                 editor.scroll((i16::MIN / 2, 0));
                 editor.move_cursor(CursorMove::Jump(row as u16, col as u16));
             }

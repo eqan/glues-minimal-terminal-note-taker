@@ -3,7 +3,6 @@ source: tui/tests/notebook_views.rs
 expression: text
 snapshot_kind: text
 ---
- Note 'Sample Note' insert mode                                                      [Ctrl+O / Ctrl+\] Pane · [Ctrl+H] 
 [Browser]                                   ▐ 󱇗 Sample Note                                                             
  󰝰 Notes                                    ▐ 1 XHi :D                                                                  
    󱇗 Sample Note                            ▐                                                                           
@@ -42,4 +41,5 @@ snapshot_kind: text
                                             ▐                                                                           
                                             ▐                                                                           
                                             ▐                                                                           
-                                            ▐ INSERT   󰝰 Notes  󱇗 Sample Note 
+                                            ▐                                                                           
+                                            ▐ INSERT  [F2] Wrap on      Ctrl+O/\ Pane · Ctrl+P Preview · Ctrl+V Paste

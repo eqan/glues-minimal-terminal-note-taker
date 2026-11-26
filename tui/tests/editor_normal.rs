@@ -8,7 +8,7 @@ use glues_tui::input::KeyCode;
 #[tokio::test]
 async fn quits_on_esc_then_q() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     t.open_first_note().await?;
 
@@ -23,7 +23,7 @@ async fn quits_on_esc_then_q() -> Result<()> {
 #[tokio::test]
 async fn quit_menu_cancel_from_normal() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
     t.open_first_note().await?;
 
     t.key(KeyCode::Esc).await;
@@ -39,7 +39,7 @@ async fn quit_menu_cancel_from_normal() -> Result<()> {
 #[tokio::test]
 async fn quit_menu_returns_to_entry() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     t.key(KeyCode::Esc).await;
     let quit = t.press('m').await;
@@ -53,7 +53,7 @@ async fn quit_menu_returns_to_entry() -> Result<()> {
 #[tokio::test]
 async fn undo_then_redo_after_insert() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
     t.open_first_note().await?;
 
     // insert text
@@ -79,7 +79,7 @@ async fn undo_then_redo_after_insert() -> Result<()> {
 #[tokio::test]
 async fn yank_line_then_paste() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
     t.open_first_note().await?;
 
     // yy then p
@@ -95,7 +95,7 @@ async fn yank_line_then_paste() -> Result<()> {
 #[tokio::test]
 async fn delete_line_with_dd() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
     t.open_first_note().await?;
 
     t.press('d').await;
@@ -109,7 +109,7 @@ async fn delete_line_with_dd() -> Result<()> {
 #[tokio::test]
 async fn gateway_moves_cursor_to_top() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
     t.open_first_note().await?;
 
     populate_long_note(&mut t).await?;
@@ -134,7 +134,7 @@ async fn gateway_moves_cursor_to_top() -> Result<()> {
 #[tokio::test]
 async fn scroll_commands_update_view() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
     t.open_first_note().await?;
 
     populate_long_note(&mut t).await?;

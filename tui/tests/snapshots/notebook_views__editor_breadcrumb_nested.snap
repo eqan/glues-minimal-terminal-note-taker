@@ -3,7 +3,6 @@ source: tui/tests/notebook_views.rs
 expression: text
 snapshot_kind: text
 ---
- Note 'SecondSample Note' normal mode                                                [Ctrl+O / Ctrl+\] Pane · [Ctrl+P] 
 [Browser]                                   ▐ 󱇗 SecondSample Note                                                       
  󰝰 Notes                                    ▐ 1 XHted                                                                   
    󰉋 Dir                                    ▐ 2 jl :D                                                                   
@@ -42,4 +41,5 @@ snapshot_kind: text
                                             ▐                                                                           
                                             ▐                                                                           
                                             ▐                                                                           
-                                            ▐ NORMAL   󰝰 Notes  󰝰 Dir  󱇗 Nested 
+                                            ▐                                                                           
+                                            ▐ NORMAL  [F2] Wrap on                     Ctrl+O/\ Pane · Ctrl+P Preview

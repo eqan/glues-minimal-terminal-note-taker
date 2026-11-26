@@ -9,7 +9,13 @@ impl App {
 
         match transition {
             IdleMode => {
-                self.context.notebook.get_editor_mut().start_selection();
+                let linewise = self.context.notebook.visual_linewise;
+                let editor = self.context.notebook.get_editor_mut();
+                if linewise {
+                    select_linewise(editor);
+                } else {
+                    editor.start_selection();
+                }
             }
             NumberingMode | GatewayMode => {}
             MoveCursorDown(n) => {
@@ -26,7 +32,8 @@ impl App {
             }
             MoveCursorBack(n) => {
                 let editor = self.context.notebook.get_editor_mut();
-                let (row, col) = editor.cursor();
+                let row = editor.cursor().0;
+                let col = editor.cursor().1;
                 let cursor_move = if col < n {
                     CursorMove::Head
                 } else {
@@ -95,25 +102,45 @@ impl App {
                 editor.move_cursor(CursorMove::WordForward);
             }
             YankSelection => {
+                let linewise = self.context.notebook.visual_linewise;
                 let editor = self.context.notebook.get_editor_mut();
-                reselect_for_yank(editor);
-                editor.copy();
-                self.context.notebook.line_yanked = false;
+                if linewise {
+                    let (_, _, selected) = selected_lines(editor);
+                    editor.cancel_selection();
+                    editor.set_yank_text(selected);
+                    self.context.notebook.line_yanked = true;
+                } else {
+                    reselect_for_yank(editor);
+                    editor.copy();
+                    self.context.notebook.line_yanked = false;
+                }
                 self.context.notebook.update_yank();
             }
             DeleteSelection => {
+                let linewise = self.context.notebook.visual_linewise;
                 let editor = self.context.notebook.get_editor_mut();
-                reselect_for_yank(editor);
-                editor.cut();
-                self.context.notebook.line_yanked = false;
+                if linewise {
+                    cut_selected_lines(editor);
+                    self.context.notebook.line_yanked = true;
+                } else {
+                    reselect_for_yank(editor);
+                    editor.cut();
+                    self.context.notebook.line_yanked = false;
+                }
                 self.context.notebook.mark_dirty();
                 self.context.notebook.update_yank();
             }
             DeleteSelectionAndInsertMode => {
+                let linewise = self.context.notebook.visual_linewise;
                 let editor = self.context.notebook.get_editor_mut();
-                reselect_for_yank(editor);
-                editor.cut();
-                self.context.notebook.line_yanked = false;
+                if linewise {
+                    cut_selected_lines(editor);
+                    self.context.notebook.line_yanked = true;
+                } else {
+                    reselect_for_yank(editor);
+                    editor.cut();
+                    self.context.notebook.line_yanked = false;
+                }
                 self.context.notebook.mark_dirty();
                 self.context.notebook.update_yank();
             }
@@ -145,6 +172,16 @@ impl App {
                 editor.insert_str(changed);
                 editor.set_yank_text(yank);
             }
+        }
+
+        if self.context.notebook.visual_linewise
+            && matches!(
+                self.context.notebook.state,
+                crate::context::notebook::ContextState::EditorVisualMode
+            )
+        {
+            let editor = self.context.notebook.get_editor_mut();
+            editor.move_cursor(CursorMove::End);
         }
     }
 }

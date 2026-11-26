@@ -2,23 +2,17 @@
 mod tester;
 use tester::Tester;
 
-use {color_eyre::Result, glues_tui::input::KeyCode};
+use color_eyre::Result;
 
 #[tokio::test]
-async fn opens_instant_on_enter() -> Result<()> {
+async fn entry_menu_offers_local_and_git_storage() -> Result<()> {
     let mut t = Tester::new().await?;
-
-    // initial draw (home)
     t.draw()?;
-
-    // move down then up, then Enter to open Instant via selection
-    t.press('j').await;
-    t.press('k').await;
-    t.key(KeyCode::Enter).await;
-
-    // draw and snapshot notebook view (e.g., sample note visible)
-    t.draw()?;
-    snap!(t, "instant");
+    let screen = t.snapshot_text();
+    assert!(screen.contains("Local"), "{screen}");
+    assert!(screen.contains("Git"), "{screen}");
+    assert!(!screen.contains("Instant"), "{screen}");
+    snap!(t, "entry_menu_local_git");
 
     Ok(())
 }

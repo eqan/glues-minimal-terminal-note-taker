@@ -3,7 +3,6 @@ source: tui/tests/notebook_tree.rs
 expression: text
 snapshot_kind: text
 ---
- Note move mode: 'Sample Note'                                                       [Ctrl+O / Ctrl+\] Pane · [?] Keyma
 [Browser]                                   ▐[Editor]                                                                   
  󰝰 Notes                                    ▐ 1 Welcome to Glues!                                                       
    󱇗 Sample Note                            ▐ 2                                                                         
@@ -42,4 +41,5 @@ snapshot_kind: text
                                             ▐                                                                           
                                             ▐                                                                           
                                             ▐                                                                           
-                                            ▐
+                                            ▐                                                                           
+                                            ▐                                           Ctrl+O/\ Pane · Ctrl+P Preview

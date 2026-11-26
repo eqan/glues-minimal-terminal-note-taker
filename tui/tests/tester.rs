@@ -1,12 +1,16 @@
 use {
     color_eyre::Result,
+    glues_core::{CoreBackend, EntryEvent, backend::local::Db},
     glues_tui::{
-        App, config,
+        Action, App, config,
         input::{Input, KeyCode, KeyEvent, KeyEventKind, KeyModifiers},
         logger,
     },
     ratatui::{Terminal, backend::TestBackend},
+    std::sync::atomic::{AtomicU64, Ordering},
 };
+
+static TEST_NOTEBOOK_ID: AtomicU64 = AtomicU64::new(0);
 
 pub struct Tester {
     pub app: App,
@@ -69,9 +73,32 @@ impl Tester {
     }
 
     #[allow(dead_code)]
-    pub async fn open_instant(&mut self) -> Result<()> {
-        self.draw()?;
-        let _ = self.press('i').await;
+    pub async fn open_local(&mut self) -> Result<()> {
+        let notebook_path = std::env::current_dir()?
+            .join(".glues")
+            .join("test-notebooks")
+            .join(format!(
+                "{}-{}",
+                std::process::id(),
+                TEST_NOTEBOOK_ID.fetch_add(1, Ordering::Relaxed)
+            ));
+        std::fs::create_dir_all(&notebook_path)?;
+
+        let (task_tx, _task_rx) = std::sync::mpsc::channel();
+        let path = notebook_path.to_string_lossy().into_owned();
+        let mut db = Db::file(task_tx, &path).await?;
+        let root_id = db.root_id();
+        let note = db.add_note(root_id, "Sample Note".to_owned()).await?;
+        db.update_note_content(note.id, "Hi :D".to_owned()).await?;
+        drop(db);
+
+        self.app
+            .handle_action(
+                Action::Dispatch(EntryEvent::OpenFile(path.clone()).into()),
+                Input::Resize(120, 40),
+            )
+            .await;
+        self.app.context_mut().notebook.storage_path = Some(notebook_path);
         self.draw()?;
         Ok(())
     }

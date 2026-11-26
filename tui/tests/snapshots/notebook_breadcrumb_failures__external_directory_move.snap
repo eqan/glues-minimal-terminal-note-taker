@@ -3,7 +3,6 @@ source: tui/tests/notebook_breadcrumb_failures.rs
 expression: text
 snapshot_kind: text
 ---
- Note 'Sample Note' selected                                                         [Ctrl+O / Ctrl+\] Pane · [?] Keyma
 [Browser]                                   ▐ 󱇗 Sample Note                                                             
  󰝰 Notes                                    ▐ 1 Hi :D                                                                   
    󱇗 Sample Note                            ▐                                                                           
@@ -42,4 +41,5 @@ snapshot_kind: text
                                             ▐                                                                           
                                             ▐                                                                           
                                             ▐                                                                           
-                                            ▐          󰝰 Notes  󱇗 Sample Note 
+                                            ▐                                                                           
+                                            ▐         [F2] Wrap on                     Ctrl+O/\ Pane · Ctrl+P Preview

@@ -3,7 +3,6 @@ source: tui/tests/notebook_tree.rs
 expression: text
 snapshot_kind: text
 ---
- Note actions dialog                                                                 [Ctrl+O / Ctrl+\] Pane · [?] Keyma
 [Browser]                                   ▐[Editor]                                                                   
  󰝰 Notes                                    ▐ 1 Welcome to Glues!                                                       
    󱇗 Sample Note                            ▐ 2                                                                         
@@ -12,6 +11,7 @@ snapshot_kind: text
                                             ▐ 5 Press `Enter` on a note to open it and start writing.                   
                                             ▐ 6                                                                         
                                             ▐ 7 GitHub: https://github.com/eqan/glues-minimal-terminal-note-taker       
+                                            ▐                                                                           
                                             ▐                                                                           
                                             ▐                                                                           
                                             ▐                                                                           
@@ -42,4 +42,4 @@ snapshot_kind: text
                                             ▐                                                                           
                                             ▐                                                                           
                                             ▐                                                                           
-                                            ▐
+                                            ▐                                           Ctrl+O/\ Pane · Ctrl+P Preview

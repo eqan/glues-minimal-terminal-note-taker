@@ -3,10 +3,10 @@ source: tui/tests/editor_insert.rs
 expression: text
 snapshot_kind: text
 ---
- Note 'Sample Note' insert mode                                                      [Ctrl+O / Ctrl+\] Pane · [Ctrl+H] 
-[Browser] ┌──────────────────────────────────────────Editor Keymap───────────────────────────────────────────┐          
- 󰝰 Notes  │                                                                                                  │          
+[Browser]                                   ▐ 󱇗 Sample Note                                                             
+ 󰝰 Notes  ┌──────────────────────────────────────────Editor Keymap───────────────────────────────────────────┐          
    󱇗 Sampl│                                                                                                  │          
+          │                                                                                                  │          
           │  | Mappings                                      | Description                                |  │          
           │  |-----------------------------------------------|--------------------------------------------|  │          
           │  | `Backspace`                                   | Delete one character before cursor         |  │          
@@ -21,6 +21,8 @@ snapshot_kind: text
           │  | `Ctrl+C`, `Copy`                              | Copy selected text                         |  │          
           │  | `Ctrl+X`, `Cut`                               | Cut selected text                          |  │          
           │  | `Ctrl+Y`, `Paste`                             | Paste yanked text                          |  │          
+          │  | `Ctrl+V`                                      | Paste clipboard text or insert a clipboard    │          
+          │  image |                                                                                         │          
           │  | `Ctrl+F`, `→`                                 | Move cursor forward by one character       |  │          
           │  | `Ctrl+B`, `←`                                 | Move cursor backward by one character      |  │          
           │  | `Ctrl+P`, `↑`                                 | Move cursor up by one line                 |  │          
@@ -33,13 +35,11 @@ snapshot_kind: text
           │  | `Ctrl+A`, `Home`, `Ctrl+Alt+B`, `Ctrl+Alt+←`  | Move cursor to the head of line            |  │          
           │  | `Alt+<`, `Ctrl+Alt+P`, `Ctrl+Alt+↑`           | Move cursor to top of lines                |  │          
           │  | `Alt+>`, `Ctrl+Alt+N`, `Ctrl+Alt+↓`           | Move cursor to bottom of lines             |  │          
-          │  | `Ctrl+V`, `PageDown`                          | Scroll down by page                        |  │          
+          │  | `PageDown`                                    | Scroll down by page                        |  │          
           │  | `Alt+V`, `PageUp`                             | Scroll up by page                          |  │          
           │                                                                                                  │          
           │  Thanks to tui-textarea                                                                          │          
-          │                                                                                                  │          
-          │                                                                                                  │          
           │                                      Press any key to close                                      │          
           │                                                                                                  │          
           └──────────────────────────────────────────────────────────────────────────────────────────────────┘          
-                                            ▐ INSERT   󰝰 Notes  󱇗 Sample Note 
+                                            ▐ INSERT  [F2] Wrap on      Ctrl+O/\ Pane · Ctrl+P Preview · Ctrl+V Paste

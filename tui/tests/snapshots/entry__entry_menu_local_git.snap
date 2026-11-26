@@ -1,0 +1,36 @@
+---
+source: tui/tests/entry.rs
+expression: text
+snapshot_kind: text
+---
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                          Glues                                                         
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                         ┌─────────────Open Notes─────────────┐                                         
+                                         │                                    │                                         
+                                         │   [l] Local                        │                                         
+                                         │   [g] Git                          │                                         
+                                         │   [h] Help                         │                                         
+                                         │   [t] Theme                        │                                         
+                                         │   [q] Quit                         │                                         
+                                         │                                    │                                         
+                                         │                                    │                                         
+                                         │                                    │                                         
+                                         │                                    │                                         
+                                         │                                    │                                         
+                                         └────────────────────────────────────┘

@@ -4,7 +4,7 @@ use {
     gluesql::{
         core::ast_builder::Build,
         gluesql_git_storage::{GitStorage, StorageType},
-        prelude::{FileStorage, Glue, MemoryStorage, Payload},
+        prelude::{FileStorage, Glue, Payload},
     },
     std::sync::mpsc::Sender,
 };
@@ -16,25 +16,11 @@ pub struct Db {
 }
 
 pub enum Storage {
-    Memory(Glue<MemoryStorage>),
     File(Glue<FileStorage>),
     Git(Glue<GitStorage>),
 }
 
 impl Db {
-    pub async fn memory(task_tx: Sender<Task>) -> Result<Self> {
-        let glue = Glue::new(MemoryStorage::default());
-        let mut storage = Storage::Memory(glue);
-
-        let root_id = setup(&mut storage).await?;
-
-        Ok(Self {
-            storage,
-            root_id,
-            task_tx,
-        })
-    }
-
     pub async fn file(task_tx: Sender<Task>, path: &str) -> Result<Self> {
         let mut storage = FileStorage::new(path).map(Glue::new).map(Storage::File)?;
 
@@ -126,7 +112,6 @@ where
         let statement = self.build()?;
 
         match storage {
-            Storage::Memory(glue) => glue.execute_stmt(&statement).await,
             Storage::File(glue) => glue.execute_stmt(&statement).await,
             Storage::Git(glue) => glue.execute_stmt(&statement).await,
         }

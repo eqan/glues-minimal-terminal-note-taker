@@ -94,6 +94,10 @@ impl App {
             }
             NotebookTransition::Inedible(_) | NotebookTransition::None => {}
         }
+
+        if !matches!(new_state, ContextState::EditorVisualMode) {
+            self.context.notebook.visual_linewise = false;
+        }
     }
 
     pub(crate) async fn save(&mut self) {

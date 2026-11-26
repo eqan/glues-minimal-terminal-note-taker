@@ -3,7 +3,6 @@ source: tui/tests/entry.rs
 expression: text
 snapshot_kind: text
 ---
- Glues - TUI note-taking app offering complete data control and flexible storage opt [Ctrl+O / Ctrl+\] Pane · [?] Keyma
                                                                                                                         
                                                                                                                         
                                                                                                                         
@@ -13,23 +12,23 @@ snapshot_kind: text
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                           ████   ███                                                                   
-                                          ██  ██   ██                                                                   
-                                         ██        ██    ██  ██   ████    █████                                         
-                                         ██        ██    ██  ██  ██  ██  ██                                             
-                                         ██  ███   ██    ██  ██  ██████   ████                                          
-                                          ██  ██   ██    ██  ██  ██          ██                                         
-                                           █████  ████    ███ ██  ████   █████                                          
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                          Glues                                                         
+                                                                                                                        
+                                                                                                                        
                                                                                                                         
                                                                                                                         
                                          ┌─────────────Open Notes─────────────┐                                         
                                          │                                    │                                         
-                                         │   [i] Instant                      │                                         
                                          │   [l] Local                        │                                         
                                          │   [g] Git                          │                                         
                                          │   [h] Help                         │                                         
                                          │   [t] Theme                        │                                         
                                          │   [q] Quit                         │                                         
+                                         │                                    │                                         
                                          │                                    │                                         
                                          │                                    │                                         
                                          │                                    │                                         

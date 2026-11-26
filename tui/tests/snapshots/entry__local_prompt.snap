@@ -3,7 +3,6 @@ source: tui/tests/entry.rs
 expression: text
 snapshot_kind: text
 ---
- Glues - TUI note-taking app offering complete data control and flexible storage opt [Ctrl+O / Ctrl+\] Pane · [?] Keyma
                                                                                                                         
                                                                                                                         
                                                                                                                         
@@ -13,10 +12,11 @@ snapshot_kind: text
                                                                                                                         
                                                                                                                         
                                                                                                                         
-                                           ████   ███                                                                   
-                                          ██  ██   ██                                                                   
-                                         ██        ██    ██  ██   ████    █████                                         
-                                         ██        ██    ██  ██  ██  ██  ██                                             
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                                                                                        
+                                                          Glues                                                         
                               ┌──────────────────────────Prompt───────────────────────────┐                             
                               │                                                           │                             
                               │  Enter the path:                                          │                             
@@ -29,7 +29,6 @@ snapshot_kind: text
                               │  [Esc] Cancel                                             │                             
                               │                                                           │                             
                               └───────────────────────────────────────────────────────────┘                             
-                                         │   [q] Quit                         │                                         
                                          │                                    │                                         
                                          │                                    │                                         
                                          │                                    │                                         

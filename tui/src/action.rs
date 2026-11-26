@@ -235,7 +235,7 @@ impl App {
                     .glues
                     .dispatch(
                         EntryEvent::OpenGit {
-                            path,
+                            path: path.clone(),
                             remote,
                             branch,
                         }
@@ -243,6 +243,7 @@ impl App {
                     )
                     .await
                     .log_unwrap();
+                self.context.notebook.storage_path = Some(path.into());
                 self.handle_transition(transition).await;
             }
             Action::Tui(TuiAction::OpenFile) => {
@@ -259,9 +260,10 @@ impl App {
 
                 let transition = self
                     .glues
-                    .dispatch(EntryEvent::OpenFile(path).into())
+                    .dispatch(EntryEvent::OpenFile(path.clone()).into())
                     .await
                     .log_unwrap();
+                self.context.notebook.storage_path = Some(path.into());
                 self.handle_transition(transition).await;
             }
             Action::Tui(TuiAction::RenameNote) => {
@@ -434,6 +436,7 @@ fn to_event(input: Input) -> Option<KeyEvent> {
         KeyCode::Char('O') => KeyEvent::CapO,
         KeyCode::Char('S') => KeyEvent::CapS,
         KeyCode::Char('U') => KeyEvent::CapU,
+        KeyCode::Char('V') => KeyEvent::V,
         KeyCode::Char('X') => KeyEvent::CapX,
         KeyCode::Char('1') => NumKey::One.into(),
         KeyCode::Char('2') => NumKey::Two.into(),

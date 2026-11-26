@@ -3,7 +3,6 @@ source: tui/tests/notebook_views.rs
 expression: text
 snapshot_kind: text
 ---
- Note 'SecondSample Note' selected                                                   [Ctrl+O / Ctrl+\] Pane · [?] Keyma
 [Browser]                                   ▐ 󱇗 SecondSample Note  󱇗 Other                                              
  󰝰 Notes                                    ▐ 1 XHi :D                                                                  
    󱇗 SecondSample Note                      ▐                                                                           
@@ -42,4 +41,5 @@ snapshot_kind: text
                                             ▐                                                                           
                                             ▐                                                                           
                                             ▐                                                                           
-                                            ▐          󰝰 Notes  󱇗 SecondSample Note 
+                                            ▐                                                                           
+                                            ▐         [F2] Wrap on                     Ctrl+O/\ Pane · Ctrl+P Preview

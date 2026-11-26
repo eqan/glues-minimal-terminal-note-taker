@@ -2,12 +2,27 @@ use {
     crate::theme::THEME,
     pulldown_cmark::{Event, HeadingLevel, Options, Parser, Tag, TagEnd},
     ratatui::{
-        style::{Modifier, Style},
+        style::{Color, Modifier, Style},
         text::{Line, Span, Text},
+    },
+    std::{
+        collections::HashMap,
+        path::{Path, PathBuf},
+        sync::{Mutex, OnceLock},
+        time::SystemTime,
     },
 };
 
-pub(super) fn render(markdown: &str) -> Text<'static> {
+#[cfg(test)]
+fn render(markdown: &str) -> Text<'static> {
+    render_with_images(markdown, None, 64)
+}
+
+pub(super) fn render_with_images(
+    markdown: &str,
+    notebook_path: Option<&Path>,
+    max_image_width: u16,
+) -> Text<'static> {
     let mut options = Options::empty();
     options.insert(Options::ENABLE_GFM);
     options.insert(Options::ENABLE_TABLES);
@@ -31,6 +46,7 @@ pub(super) fn render(markdown: &str) -> Text<'static> {
     let mut table_headers: Vec<Vec<Span<'static>>> = Vec::new();
     let mut table_row: Vec<Vec<Span<'static>>> = Vec::new();
     let mut blockquote_depth = 0;
+    let mut skip_image_alt = false;
     let flush = |lines: &mut Vec<Line<'static>>, current: &mut Vec<Span<'static>>| {
         if current.is_empty() {
             return;
@@ -105,8 +121,20 @@ pub(super) fn render(markdown: &str) -> Text<'static> {
                         .fg(THEME.accent_text)
                         .add_modifier(Modifier::UNDERLINED),
                 ),
-                Tag::Image { .. } => {
-                    current.push(Span::styled("▧ ", Style::default().fg(THEME.accent)));
+                Tag::Image { dest_url, .. } => {
+                    flush(&mut lines, &mut current);
+                    if let Some(image_path) =
+                        notebook_path.and_then(|base| resolve_local_image(base, &dest_url))
+                        && let Some(image_lines) = rasterized_image(&image_path, max_image_width)
+                    {
+                        blank_line(&mut lines);
+                        lines.extend(image_lines);
+                        blank_line(&mut lines);
+                        skip_image_alt = true;
+                    } else {
+                        current.push(Span::styled("▧ ", Style::default().fg(THEME.accent)));
+                        skip_image_alt = false;
+                    }
                 }
                 Tag::TableHead => {
                     if !current.is_empty() {
@@ -199,24 +227,37 @@ pub(super) fn render(markdown: &str) -> Text<'static> {
                     flush(&mut lines, &mut current);
                     blank_line(&mut lines);
                 }
+                TagEnd::Image => {
+                    skip_image_alt = false;
+                }
                 _ => {}
             },
             Event::Text(text) => {
-                append_text(&mut lines, &mut current, &text, current_style(&styles))
+                if !skip_image_alt {
+                    append_text(&mut lines, &mut current, &text, current_style(&styles));
+                }
             }
-            Event::Code(code) => current.push(Span::styled(
+            Event::Code(code) if !skip_image_alt => current.push(Span::styled(
                 code.into_string(),
                 Style::default().fg(THEME.accent_text).bg(THEME.surface),
             )),
-            Event::InlineMath(math) | Event::DisplayMath(math) => current.push(Span::styled(
-                math.into_string(),
-                Style::default().fg(THEME.accent_text).bg(THEME.surface),
-            )),
-            Event::Html(html) | Event::InlineHtml(html) => {
-                append_text(&mut lines, &mut current, &html, current_style(&styles));
+            Event::InlineMath(math) | Event::DisplayMath(math) if !skip_image_alt => {
+                current.push(Span::styled(
+                    math.into_string(),
+                    Style::default().fg(THEME.accent_text).bg(THEME.surface),
+                ))
             }
-            Event::SoftBreak => current.push(Span::raw(" ")),
-            Event::HardBreak => flush(&mut lines, &mut current),
+            Event::Code(_) => {}
+            Event::InlineMath(_) | Event::DisplayMath(_) => {}
+            Event::Html(html) | Event::InlineHtml(html) => {
+                if !skip_image_alt {
+                    append_text(&mut lines, &mut current, &html, current_style(&styles));
+                }
+            }
+            Event::SoftBreak if !skip_image_alt => current.push(Span::raw(" ")),
+            Event::SoftBreak => {}
+            Event::HardBreak if !skip_image_alt => flush(&mut lines, &mut current),
+            Event::HardBreak => {}
             Event::Rule => {
                 flush(&mut lines, &mut current);
                 lines.push(Line::from(Span::styled(
@@ -321,6 +362,69 @@ fn heading_style(level: HeadingLevel) -> Style {
         _ => THEME.success_text,
     };
     Style::default().fg(color).add_modifier(Modifier::BOLD)
+}
+
+fn resolve_local_image(notebook_path: &Path, source: &str) -> Option<PathBuf> {
+    let source = Path::new(source);
+    if source.is_absolute() || source.to_string_lossy().contains("://") {
+        return None;
+    }
+
+    let root = notebook_path.canonicalize().ok()?;
+    let path = root.join(source).canonicalize().ok()?;
+    path.starts_with(root).then_some(path)
+}
+
+type CachedImageLines = HashMap<(PathBuf, u16), (SystemTime, u64, Vec<Line<'static>>)>;
+static IMAGE_LINE_CACHE: OnceLock<Mutex<CachedImageLines>> = OnceLock::new();
+
+fn rasterized_image(path: &Path, max_width: u16) -> Option<Vec<Line<'static>>> {
+    let metadata = std::fs::metadata(path).ok()?;
+    let modified = metadata.modified().ok()?;
+    let file_size = metadata.len();
+    let width = max_width.max(1);
+    let key = (path.to_owned(), width);
+    let cache = IMAGE_LINE_CACHE.get_or_init(|| Mutex::new(HashMap::new()));
+
+    if let Ok(cache) = cache.lock()
+        && let Some((cached_modified, cached_size, lines)) = cache.get(&key)
+        && *cached_modified == modified
+        && *cached_size == file_size
+    {
+        return Some(lines.clone());
+    }
+
+    let decoded = image::ImageReader::open(path).ok()?.decode().ok()?;
+    let resized = decoded.thumbnail(u32::from(width), 48).to_rgba8();
+    let (image_width, image_height) = resized.dimensions();
+    let mut lines = Vec::with_capacity(image_height.div_ceil(2) as usize);
+
+    for y in (0..image_height).step_by(2) {
+        let mut spans = Vec::with_capacity(image_width as usize);
+        let lower_y = (y + 1).min(image_height - 1);
+        for x in 0..image_width {
+            let top = resized.get_pixel(x, y).0;
+            let bottom = resized.get_pixel(x, lower_y).0;
+            spans.push(Span::styled(
+                "▀",
+                Style::default()
+                    .fg(Color::Rgb(top[0], top[1], top[2]))
+                    .bg(Color::Rgb(bottom[0], bottom[1], bottom[2])),
+            ));
+        }
+        lines.push(Line::from(spans));
+    }
+
+    if let Ok(mut cache) = cache.lock() {
+        if cache.len() >= 64
+            && let Some(oldest_key) = cache.keys().next().cloned()
+        {
+            cache.remove(&oldest_key);
+        }
+        cache.insert(key, (modified, file_size, lines.clone()));
+    }
+
+    Some(lines)
 }
 
 fn render_table_row(

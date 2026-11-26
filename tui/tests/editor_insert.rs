@@ -3,12 +3,12 @@ mod tester;
 use tester::Tester;
 
 use color_eyre::Result;
-use glues_tui::input::KeyCode;
+use glues_tui::input::{Input, KeyCode};
 
 #[tokio::test]
 async fn editor_keymap_overlay_in_insert_mode() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
 
     // open first note and enter insert mode
     t.open_first_note().await?;
@@ -30,7 +30,7 @@ async fn editor_keymap_overlay_in_insert_mode() -> Result<()> {
 #[tokio::test]
 async fn insert_typing_and_escape() -> Result<()> {
     let mut t = Tester::new().await?;
-    t.open_instant().await?;
+    t.open_local().await?;
     t.open_first_note().await?;
 
     t.press('i').await;
@@ -46,5 +46,36 @@ async fn insert_typing_and_escape() -> Result<()> {
     t.draw()?;
     snap!(t, "back_to_normal");
 
+    Ok(())
+}
+
+#[tokio::test]
+async fn bracketed_terminal_paste_inserts_text_in_insert_mode() -> Result<()> {
+    let mut t = Tester::new().await?;
+    t.open_local().await?;
+    t.open_first_note().await?;
+    t.press('i').await;
+
+    let paste = Input::Paste("pasted text".to_owned());
+    let action = t.app.context_mut().consume(&paste).await;
+    t.app.handle_action(action, paste).await;
+
+    assert!(
+        t.app
+            .context_mut()
+            .notebook
+            .get_editor()
+            .lines()
+            .join("\n")
+            .contains("pasted text")
+    );
+    assert!(
+        t.app
+            .context_mut()
+            .notebook
+            .editors
+            .values()
+            .any(|item| item.dirty)
+    );
     Ok(())
 }

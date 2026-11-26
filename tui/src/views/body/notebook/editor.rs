@@ -2,6 +2,7 @@ use {
     crate::{
         context::{Context, notebook::ContextState},
         theme::THEME,
+        views::statusbar,
     },
     ratatui::{
         Frame,
@@ -10,7 +11,7 @@ use {
         text::{Line, Span},
         widgets::{Block, Padding, Paragraph, Wrap},
     },
-    tui_textarea::TextArea,
+    tui_textarea::{TextArea, WrapMode},
 };
 
 const NOTE_SYMBOL: &str = "󱇗 ";
@@ -27,7 +28,7 @@ const SAMPLE_NOTE: [&str; 7] = [
 pub fn draw(frame: &mut Frame, area: Rect, context: &mut Context) {
     context.notebook.editor_height = area.height - 2;
 
-    let (title, mut bottom_left) = if let Some(tab_index) = context.notebook.tab_index {
+    let title = if let Some(tab_index) = context.notebook.tab_index {
         let mut title = vec![];
         for (i, tab) in context.notebook.tabs.iter().enumerate() {
             let name = format!(" {NOTE_SYMBOL}{} ", tab.note.name);
@@ -44,46 +45,9 @@ pub fn draw(frame: &mut Frame, area: Rect, context: &mut Context) {
             title.push(name);
         }
 
-        let title = Line::from(title);
-        let mut breadcrumb = vec![];
-        let last_index = context.notebook.tabs[tab_index].breadcrumb.len() - 1;
-
-        for (i, name) in context.notebook.tabs[tab_index]
-            .breadcrumb
-            .iter()
-            .enumerate()
-        {
-            let (color_a, color_b) = if i % 2 == 0 {
-                (THEME.crumb_a, THEME.crumb_b)
-            } else {
-                (THEME.crumb_b, THEME.crumb_a)
-            };
-
-            let name = if i == 0 {
-                breadcrumb.push(Span::raw("  󰝰 ").fg(THEME.crumb_icon).bg(color_a));
-                format!("{name} ")
-            } else if i == last_index {
-                format!(" 󱇗 {name} ")
-            } else {
-                breadcrumb.push(Span::raw(" 󰝰 ").fg(THEME.crumb_icon).bg(color_a));
-                format!("{name} ")
-            };
-
-            breadcrumb.push(Span::raw(name).fg(THEME.text).bg(color_a));
-
-            if i < last_index {
-                breadcrumb.push(Span::raw("").fg(color_a).bg(color_b));
-            } else {
-                breadcrumb.push(Span::raw("").fg(color_a).bg(THEME.background));
-            }
-        }
-
-        (title, breadcrumb)
+        Line::from(title)
     } else {
-        (
-            Line::from("[Editor]".fg(THEME.inactive_text)),
-            vec![Span::default()],
-        )
+        Line::from("[Editor]".fg(THEME.inactive_text))
     };
 
     let (mode, bg) = if context.notebook.markdown_preview {
@@ -111,38 +75,53 @@ pub fn draw(frame: &mut Frame, area: Rect, context: &mut Context) {
         }
     };
 
+    let mut bottom_left = vec![mode];
     if context.notebook.tab_index.is_some() {
-        bottom_left.insert(0, mode);
-        bottom_left.insert(1, Span::raw("").fg(bg).bg(THEME.crumb_a));
+        bottom_left.push(Span::raw("").fg(bg).bg(THEME.background));
+        let wrapping = if context.notebook.wrap_content {
+            "on"
+        } else {
+            "off"
+        };
+        bottom_left.push(
+            Span::raw(format!(" [F2] Wrap {wrapping} "))
+                .fg(THEME.hint)
+                .bg(THEME.background),
+        );
     }
 
     let bottom_left = Line::from(bottom_left);
     let block = Block::new().title(title).title_bottom(bottom_left);
-    let block = match (
+    let mut bottom_right = match (
         context.last_log.as_ref(),
         context.notebook.editors.iter().any(|(_, item)| item.dirty),
     ) {
-        (_, true) => block.title_bottom(
-            Line::from(vec![
-                Span::raw("").fg(THEME.accent).bg(THEME.background),
-                Span::raw(" 󰔚 Saving... ")
-                    .fg(THEME.accent_text)
-                    .bg(THEME.accent),
-            ])
-            .right_aligned(),
-        ),
-        (Some((log, _)), false) => block.title_bottom(
-            Line::from(format!(" {log} ").fg(THEME.success_text).bg(THEME.success)).right_aligned(),
-        ),
-        (None, false) => block,
+        (_, true) => vec![
+            Span::raw("").fg(THEME.accent).bg(THEME.background),
+            Span::raw(" 󰔚 Saving... ")
+                .fg(THEME.accent_text)
+                .bg(THEME.accent),
+        ],
+        (Some((log, _)), false) => vec![
+            Span::raw(format!(" {log} "))
+                .fg(THEME.success_text)
+                .bg(THEME.success),
+        ],
+        (None, false) => vec![],
+    };
+    if !bottom_right.is_empty() {
+        bottom_right.push(Span::raw(" "));
     }
-    .fg(THEME.text)
-    .bg(THEME.background)
-    .padding(if context.notebook.show_line_number {
-        Padding::ZERO
-    } else {
-        Padding::left(1)
-    });
+    bottom_right.extend(statusbar::controls(&context.notebook).spans);
+    let block = block
+        .title_bottom(Line::from(bottom_right).right_aligned())
+        .fg(THEME.text)
+        .bg(THEME.background)
+        .padding(if context.notebook.show_line_number {
+            Padding::ZERO
+        } else {
+            Padding::left(1)
+        });
 
     if context.notebook.markdown_preview {
         let content = context
@@ -150,7 +129,11 @@ pub fn draw(frame: &mut Frame, area: Rect, context: &mut Context) {
             .tab_index
             .map(|_| context.notebook.get_editor().lines().join("\n"))
             .unwrap_or_else(|| SAMPLE_NOTE.join("\n"));
-        let markdown = super::markdown::render(&content);
+        let markdown = super::markdown::render_with_images(
+            &content,
+            context.notebook.storage_path.as_deref(),
+            area.width.saturating_sub(6).clamp(1, 80),
+        );
         let preview_block = block.padding(Padding::left(1));
 
         let paragraph = Paragraph::new(markdown)
@@ -169,6 +152,7 @@ pub fn draw(frame: &mut Frame, area: Rect, context: &mut Context) {
     }
 
     let show_line_number = context.notebook.show_line_number;
+    let wrap_content = context.notebook.wrap_content;
     let state = context.notebook.state;
     let mut editor = TextArea::from(SAMPLE_NOTE);
     let editor = if context.notebook.tab_index.is_some() {
@@ -176,6 +160,12 @@ pub fn draw(frame: &mut Frame, area: Rect, context: &mut Context) {
     } else {
         &mut editor
     };
+
+    editor.set_wrap_mode(if wrap_content {
+        WrapMode::Word
+    } else {
+        WrapMode::None
+    });
 
     editor.set_block(block);
 

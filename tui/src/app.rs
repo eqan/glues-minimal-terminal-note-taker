@@ -108,18 +108,9 @@ impl App {
     }
 
     pub fn draw(&mut self, frame: &mut Frame) {
-        use ratatui::layout::{
-            Constraint::{Length, Percentage},
-            Layout,
-        };
-
         let state = &self.glues.state;
         let context = &mut self.context;
-        let vertical = Layout::vertical([Length(1), Percentage(100)]);
-        let [statusbar, body] = vertical.areas(frame.area());
-
-        views::statusbar::draw(frame, statusbar, state, &context.notebook);
-        views::body::draw(frame, body, context);
+        views::body::draw(frame, frame.area(), context);
         views::dialog::draw(frame, state, context);
     }
 
