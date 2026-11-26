@@ -68,6 +68,15 @@ impl Tester {
     }
 
     #[allow(dead_code)]
+    pub async fn shift(&mut self, c: char) -> bool {
+        self.handle_input(key_press(
+            KeyCode::Char(c),
+            KeyModifiers::new(false, false, true),
+        ))
+        .await
+    }
+
+    #[allow(dead_code)]
     pub async fn key(&mut self, code: KeyCode) -> bool {
         self.handle_input(key_press(code, KeyModifiers::NONE)).await
     }

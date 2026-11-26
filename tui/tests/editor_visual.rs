@@ -36,7 +36,7 @@ async fn shift_v_yanks_complete_lines() -> Result<()> {
         editor.move_cursor(tui_textarea::CursorMove::Down);
     }
 
-    t.press('V').await;
+    t.shift('v').await;
     assert!(t.app.context_mut().notebook.visual_linewise);
     t.press('j').await;
     t.press('y').await;
@@ -62,7 +62,7 @@ async fn shift_v_deletes_complete_lines() -> Result<()> {
         editor.move_cursor(tui_textarea::CursorMove::Down);
     }
 
-    t.press('V').await;
+    t.shift('v').await;
     t.press('j').await;
     t.press('d').await;
 

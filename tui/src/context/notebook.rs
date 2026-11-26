@@ -606,9 +606,15 @@ impl NotebookContext {
     }
 
     fn consume_on_editor_normal(&mut self, input: &Input, idle: bool) -> Action {
-        let code = match input {
-            Input::Key(key) => key.code,
+        let (code, shift) = match input {
+            Input::Key(key) => (key.code, key.modifiers.shift),
             _ => return Action::None,
+        };
+        let code = match code {
+            KeyCode::Char(c) if c.is_ascii_alphabetic() && shift => {
+                KeyCode::Char(c.to_ascii_uppercase())
+            }
+            code => code,
         };
 
         if idle

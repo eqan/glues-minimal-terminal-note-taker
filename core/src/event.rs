@@ -91,6 +91,7 @@ pub enum KeyEvent {
     Y,
     Z,
     CapA,
+    CapD,
     CapG,
     CapH,
     CapI,

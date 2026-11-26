@@ -394,15 +394,30 @@ fn to_event(input: Input) -> Option<KeyEvent> {
     let code = key.code;
     let ctrl = key.modifiers.ctrl;
 
-    // Do not reinterpret control chords as their plain Vim letter. In
-    // particular, Ctrl+S must not become `s` (substitute and enter insert).
-    if ctrl && !matches!(code, KeyCode::Char('h' | 'r')) {
+    // Handle control chords before normalizing shifted letters. In particular,
+    // Ctrl+S must not become `s` (substitute and enter insert).
+    if ctrl {
+        return match code {
+            KeyCode::Char('h' | 'H') if !key.modifiers.alt => Some(KeyEvent::CtrlH),
+            KeyCode::Char('r' | 'R') if !key.modifiers.alt => Some(KeyEvent::CtrlR),
+            _ => None,
+        };
+    }
+
+    if key.modifiers.alt {
         return None;
     }
 
+    // Terminals vary: Shift+D may arrive as `D`, or as `d` plus SHIFT.
+    // Normalize both representations before mapping Vim commands.
+    let code = match code {
+        KeyCode::Char(c) if c.is_ascii_alphabetic() && key.modifiers.shift => {
+            KeyCode::Char(c.to_ascii_uppercase())
+        }
+        code => code,
+    };
+
     let event = match code {
-        KeyCode::Char('h') if ctrl => KeyEvent::CtrlH,
-        KeyCode::Char('r') if ctrl => KeyEvent::CtrlR,
         KeyCode::Char('a') => KeyEvent::A,
         KeyCode::Char('b') => KeyEvent::B,
         KeyCode::Char('c') => KeyEvent::C,
@@ -427,6 +442,7 @@ fn to_event(input: Input) -> Option<KeyEvent> {
         KeyCode::Char('y') => KeyEvent::Y,
         KeyCode::Char('z') => KeyEvent::Z,
         KeyCode::Char('A') => KeyEvent::CapA,
+        KeyCode::Char('D') => KeyEvent::CapD,
         KeyCode::Char('G') => KeyEvent::CapG,
         KeyCode::Char('H') => KeyEvent::CapH,
         KeyCode::Char('I') => KeyEvent::CapI,
@@ -497,6 +513,57 @@ mod tests {
         assert!(matches!(
             to_event(key(KeyCode::Char('a'), KeyModifiers::NONE)),
             Some(KeyEvent::A)
+        ));
+    }
+
+    #[test]
+    fn shifted_vim_letters_work_with_lowercase_and_shift_modifier() {
+        let shifted = KeyModifiers::new(false, false, true);
+        let mappings = [
+            ('a', KeyEvent::CapA),
+            ('d', KeyEvent::CapD),
+            ('g', KeyEvent::CapG),
+            ('h', KeyEvent::CapH),
+            ('i', KeyEvent::CapI),
+            ('j', KeyEvent::CapJ),
+            ('k', KeyEvent::CapK),
+            ('l', KeyEvent::CapL),
+            ('o', KeyEvent::CapO),
+            ('s', KeyEvent::CapS),
+            ('u', KeyEvent::CapU),
+            ('v', KeyEvent::V),
+            ('x', KeyEvent::CapX),
+        ];
+
+        for (character, expected) in mappings {
+            let actual = to_event(key(KeyCode::Char(character), shifted));
+            assert!(
+                matches!(
+                    (actual, expected),
+                    (Some(KeyEvent::CapA), KeyEvent::CapA)
+                        | (Some(KeyEvent::CapD), KeyEvent::CapD)
+                        | (Some(KeyEvent::CapG), KeyEvent::CapG)
+                        | (Some(KeyEvent::CapH), KeyEvent::CapH)
+                        | (Some(KeyEvent::CapI), KeyEvent::CapI)
+                        | (Some(KeyEvent::CapJ), KeyEvent::CapJ)
+                        | (Some(KeyEvent::CapK), KeyEvent::CapK)
+                        | (Some(KeyEvent::CapL), KeyEvent::CapL)
+                        | (Some(KeyEvent::CapO), KeyEvent::CapO)
+                        | (Some(KeyEvent::CapS), KeyEvent::CapS)
+                        | (Some(KeyEvent::CapU), KeyEvent::CapU)
+                        | (Some(KeyEvent::V), KeyEvent::V)
+                        | (Some(KeyEvent::CapX), KeyEvent::CapX)
+                ),
+                "shift+{character} mapped to {actual:?}, expected {expected:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn uppercase_keycode_maps_even_without_shift_modifier() {
+        assert!(matches!(
+            to_event(key(KeyCode::Char('D'), KeyModifiers::NONE)),
+            Some(KeyEvent::CapD)
         ));
     }
 }

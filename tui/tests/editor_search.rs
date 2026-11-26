@@ -24,7 +24,7 @@ async fn slash_search_and_vim_repeat_keys_move_between_matches() -> Result<()> {
     t.press('n').await;
     assert_eq!(t.app.context_mut().notebook.get_editor().cursor(), (1, 0));
 
-    t.press('N').await;
+    t.shift('n').await;
     assert_eq!(t.app.context_mut().notebook.get_editor().cursor(), (0, 11));
 
     t.ctrl('p').await;

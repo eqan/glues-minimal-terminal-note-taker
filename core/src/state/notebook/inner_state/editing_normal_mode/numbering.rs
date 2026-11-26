@@ -72,6 +72,11 @@ pub fn consume(state: &mut NotebookState, n: usize, event: Event) -> Result<Note
 
             DeleteLines(n).into()
         }
+        Key(KeyEvent::CapD) => {
+            state.inner_state = InnerState::EditingNormalMode(VimNormalState::Idle);
+
+            DeleteLineEnd(n).into()
+        }
         Key(KeyEvent::Y) => {
             state.inner_state = InnerState::EditingNormalMode(VimNormalState::Yank(n));
 

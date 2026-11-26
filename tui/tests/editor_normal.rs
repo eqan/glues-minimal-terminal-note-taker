@@ -107,6 +107,43 @@ async fn delete_line_with_dd() -> Result<()> {
 }
 
 #[tokio::test]
+async fn shift_d_deletes_from_cursor_to_end_of_line() -> Result<()> {
+    let mut t = Tester::new().await?;
+    t.open_local().await?;
+    t.open_first_note().await?;
+    t.press('g').await;
+    t.press('g').await;
+
+    t.shift('d').await;
+
+    assert_eq!(
+        t.app.context_mut().notebook.get_editor().lines(),
+        &[String::new()]
+    );
+    Ok(())
+}
+
+#[tokio::test]
+async fn shift_s_deletes_line_and_enters_insert_mode() -> Result<()> {
+    let mut t = Tester::new().await?;
+    t.open_local().await?;
+    t.open_first_note().await?;
+
+    t.shift('s').await;
+    assert_eq!(
+        t.app.context_mut().notebook.get_editor().lines(),
+        &[String::new()]
+    );
+
+    t.type_str("replacement").await;
+    assert_eq!(
+        t.app.context_mut().notebook.get_editor().lines(),
+        &["replacement"]
+    );
+    Ok(())
+}
+
+#[tokio::test]
 async fn gateway_moves_cursor_to_top() -> Result<()> {
     let mut t = Tester::new().await?;
     t.open_local().await?;

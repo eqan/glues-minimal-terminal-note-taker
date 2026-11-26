@@ -72,6 +72,7 @@ pub fn consume(state: &mut NotebookState, event: Event) -> Result<NotebookTransi
 
             InsertAtLineEnd.into()
         }
+        Key(KeyEvent::CapD) => DeleteLineEnd(1).into(),
         Key(KeyEvent::O) => {
             state.inner_state = InnerState::EditingInsertMode;
 
@@ -138,6 +139,7 @@ pub fn keymap() -> Vec<KeymapGroup> {
         KeymapItem::new("F2", "Toggle Markdown preview wrapping"),
         KeymapItem::new("I", "Insert at line start"),
         KeymapItem::new("A", "Insert at line end"),
+        KeymapItem::new("D", "Delete from cursor to line end"),
         KeymapItem::new("o", "Insert line below"),
         KeymapItem::new("O", "Insert line above"),
         KeymapItem::new("v", "Enter characterwise visual mode"),

@@ -22,6 +22,7 @@ snapshot_kind: text
                │  [g] Go to gateway mode (access extended commands)                                     │               
                │  [y] Go to yank mode (prepare to copy text)                                            │               
                │  [d] Go to delete mode (prepare to delete text)                                        │               
+               │  [D] Delete from the cursor to the end of the line                                     │               
                │  [z] Go to scroll mode (adjust viewport)                                               │               
                │  [1-9] Go to numbering mode (repeat or extend actions with numbers)                    │               
                │                                                                                        │               
@@ -39,7 +40,6 @@ snapshot_kind: text
                │  [$] Move cursor to the end of the line                                                │               
                │  [^] Move cursor to the first non-blank character of the line                          │               
                │  [G] Move cursor to the end of the file                                                │               
-               │                                                                                        │               
                │                                 Press any key to close                                 │               
                │                                                                                        │               
                └────────────────────────────────────────────────────────────────────────────────────────┘Ctrl+P Preview
