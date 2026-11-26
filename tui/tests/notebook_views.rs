@@ -5,7 +5,7 @@ use tester::Tester;
 use {
     color_eyre::Result,
     glues_core::transition::VimKeymapKind,
-    glues_tui::{context::notebook::ContextState, input::KeyCode},
+    glues_tui::{context::notebook::ContextState, input::KeyCode, theme::THEME},
     std::time::SystemTime,
 };
 
@@ -116,6 +116,28 @@ async fn clipboard_image_is_saved_linked_and_shown_in_preview() -> Result<()> {
     t.app.context_mut().notebook.markdown_preview = true;
     t.draw()?;
     assert!(t.snapshot_text().contains('▀'));
+    Ok(())
+}
+
+#[tokio::test]
+async fn footer_keeps_colored_mode_and_control_segments() -> Result<()> {
+    let mut t = Tester::new().await?;
+    t.open_local().await?;
+    t.open_first_note().await?;
+    t.press('i').await;
+    t.draw()?;
+
+    let buffer = t.term.backend().buffer();
+    let footer_y = buffer.area().bottom() - 1;
+    let insert_x = (0..buffer.area().width)
+        .find(|&x| buffer[(x, footer_y)].symbol() == "I")
+        .expect("insert mode badge should be shown");
+    let controls_x = (0..buffer.area().width)
+        .find(|&x| buffer[(x, footer_y)].symbol() == "C")
+        .expect("pane controls should be shown");
+
+    assert_eq!(buffer[(insert_x, footer_y)].bg, THEME.accent);
+    assert_eq!(buffer[(controls_x, footer_y)].bg, THEME.success);
     Ok(())
 }
 

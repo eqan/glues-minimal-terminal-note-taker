@@ -7,6 +7,7 @@ use {
     },
     std::{
         collections::HashMap,
+        panic::{AssertUnwindSafe, catch_unwind},
         path::{Path, PathBuf},
         sync::{Mutex, OnceLock},
         time::SystemTime,
@@ -394,7 +395,14 @@ fn rasterized_image(path: &Path, max_width: u16) -> Option<Vec<Line<'static>>> {
         return Some(lines.clone());
     }
 
-    let decoded = image::ImageReader::open(path).ok()?.decode().ok()?;
+    let decoded = catch_unwind(AssertUnwindSafe(|| {
+        image::ImageReader::open(path)
+            .map_err(|error| error.to_string())?
+            .decode()
+            .map_err(|error| error.to_string())
+    }))
+    .ok()?
+    .ok()?;
     let resized = decoded.thumbnail(u32::from(width), 48).to_rgba8();
     let (image_width, image_height) = resized.dimensions();
     let mut lines = Vec::with_capacity(image_height.div_ceil(2) as usize);

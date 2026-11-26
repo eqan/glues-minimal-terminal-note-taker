@@ -13,7 +13,11 @@ use {
         types::{Id, NoteId},
     },
     ratatui::{text::Line, widgets::ListState},
-    std::{collections::HashMap, path::PathBuf},
+    std::{
+        collections::HashMap,
+        panic::{AssertUnwindSafe, catch_unwind},
+        path::PathBuf,
+    },
     tui_textarea::TextArea,
 };
 
@@ -100,6 +104,11 @@ pub struct NotebookContext {
 pub struct EditorItem {
     pub editor: TextArea<'static>,
     pub dirty: bool,
+}
+
+enum ClipboardContent {
+    Image(arboard::ImageData<'static>),
+    Text(String),
 }
 
 impl Default for NotebookContext {
@@ -405,17 +414,27 @@ impl NotebookContext {
     }
 
     pub fn paste_from_clipboard(&mut self) -> Result<(), String> {
-        let mut clipboard = Clipboard::new().map_err(|error| error.to_string())?;
-        if let Ok(image) = clipboard.get_image() {
-            self.insert_clipboard_image(image)?;
-            return Ok(());
-        }
+        let content = catch_clipboard_panic(|| {
+            let mut clipboard = Clipboard::new().map_err(|error| error.to_string())?;
+            if let Ok(image) = clipboard.get_image() {
+                return Ok(ClipboardContent::Image(image));
+            }
 
-        let text = clipboard
-            .get_text()
-            .map_err(|_| "Clipboard does not contain text or a supported image".to_owned())?;
-        self.get_editor_mut().insert_str(text);
-        self.mark_dirty();
+            let text = clipboard
+                .get_text()
+                .map_err(|_| "Clipboard does not contain text or a supported image".to_owned())?;
+            Ok(ClipboardContent::Text(text))
+        })?;
+
+        match content {
+            ClipboardContent::Image(image) => {
+                self.insert_clipboard_image(image)?;
+            }
+            ClipboardContent::Text(text) => {
+                self.get_editor_mut().insert_str(text);
+                self.mark_dirty();
+            }
+        }
         Ok(())
     }
 
@@ -424,7 +443,7 @@ impl NotebookContext {
             .storage_path
             .clone()
             .ok_or_else(|| "Open a Local or Git notebook before pasting an image".to_owned())?;
-        let markdown = save_clipboard_image(&notebook_path, image)?;
+        let markdown = catch_clipboard_panic(|| save_clipboard_image(&notebook_path, image))?;
         self.get_editor_mut().insert_str(&markdown);
         self.mark_dirty();
         Ok(markdown)
@@ -796,6 +815,12 @@ fn save_clipboard_image(
     Ok(format!("![Clipboard image](assets/{filename})"))
 }
 
+fn catch_clipboard_panic<T>(operation: impl FnOnce() -> Result<T, String>) -> Result<T, String> {
+    catch_unwind(AssertUnwindSafe(operation)).unwrap_or_else(|_| {
+        Err("Clipboard image processing failed unexpectedly; the note is still open.".to_owned())
+    })
+}
+
 fn search_text_area(
     editor: &mut TextArea<'_>,
     pattern: &str,
@@ -813,8 +838,8 @@ fn search_text_area(
 
 #[cfg(test)]
 mod search_tests {
-    use super::search_text_area;
     use super::{ContextState, NotebookContext};
+    use super::{catch_clipboard_panic, search_text_area};
     use crate::{
         action::Action,
         input::{Input, KeyCode, KeyEvent, KeyEventKind, KeyModifiers},
@@ -856,6 +881,16 @@ mod search_tests {
     fn missing_search_returns_none() {
         let mut editor = TextArea::from(["notes"]);
         assert!(!search_text_area(&mut editor, "absent", false).unwrap());
+    }
+
+    #[test]
+    fn clipboard_backend_panics_are_returned_as_alertable_errors() {
+        let error = catch_clipboard_panic(|| -> Result<(), String> {
+            panic!("simulated clipboard backend panic");
+        })
+        .expect_err("clipboard panic should not escape to the app loop");
+
+        assert!(error.contains("Clipboard image processing failed unexpectedly"));
     }
 
     #[test]

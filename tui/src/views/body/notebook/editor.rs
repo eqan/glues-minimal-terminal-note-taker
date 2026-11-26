@@ -8,7 +8,7 @@ use {
         Frame,
         layout::Rect,
         style::{Style, Stylize},
-        text::{Line, Span},
+        text::Line,
         widgets::{Block, Padding, Paragraph, Wrap},
     },
     tui_textarea::{TextArea, WrapMode},
@@ -26,8 +26,37 @@ const SAMPLE_NOTE: [&str; 7] = [
 ];
 
 pub fn draw(frame: &mut Frame, area: Rect, context: &mut Context) {
-    context.notebook.editor_height = area.height - 2;
+    if area.height == 0 {
+        return;
+    }
 
+    let content_area = Rect {
+        height: area.height.saturating_sub(1),
+        ..area
+    };
+    let footer_area = Rect {
+        y: area.y + content_area.height,
+        height: 1,
+        ..area
+    };
+    context.notebook.editor_height = content_area.height.saturating_sub(2);
+
+    draw_content(frame, content_area, context);
+
+    let dirty = context.notebook.editors.values().any(|item| item.dirty);
+    statusbar::draw(
+        frame,
+        footer_area,
+        &context.notebook,
+        context
+            .last_log
+            .as_ref()
+            .map(|(message, _)| message.as_str()),
+        dirty,
+    );
+}
+
+fn draw_content(frame: &mut Frame, area: Rect, context: &mut Context) {
     let title = if let Some(tab_index) = context.notebook.tab_index {
         let mut title = vec![];
         for (i, tab) in context.notebook.tabs.iter().enumerate() {
@@ -50,71 +79,8 @@ pub fn draw(frame: &mut Frame, area: Rect, context: &mut Context) {
         Line::from("[Editor]".fg(THEME.inactive_text))
     };
 
-    let (mode, bg) = if context.notebook.markdown_preview {
-        (
-            Span::raw(" PREVIEW ")
-                .fg(THEME.accent_text)
-                .bg(THEME.accent),
-            THEME.accent,
-        )
-    } else {
-        match context.notebook.state {
-            ContextState::EditorNormalMode { .. } => (
-                Span::raw(" NORMAL ").fg(THEME.text).bg(THEME.background),
-                THEME.background,
-            ),
-            ContextState::EditorInsertMode => (
-                Span::raw(" INSERT ").fg(THEME.accent_text).bg(THEME.accent),
-                THEME.accent,
-            ),
-            ContextState::EditorVisualMode => (
-                Span::raw(" VISUAL ").fg(THEME.error_text).bg(THEME.error),
-                THEME.error,
-            ),
-            _ => (Span::raw("        ").bg(THEME.surface), THEME.surface),
-        }
-    };
-
-    let mut bottom_left = vec![mode];
-    if context.notebook.tab_index.is_some() {
-        bottom_left.push(Span::raw("").fg(bg).bg(THEME.background));
-        let wrapping = if context.notebook.wrap_content {
-            "on"
-        } else {
-            "off"
-        };
-        bottom_left.push(
-            Span::raw(format!(" [F2] Wrap {wrapping} "))
-                .fg(THEME.hint)
-                .bg(THEME.background),
-        );
-    }
-
-    let bottom_left = Line::from(bottom_left);
-    let block = Block::new().title(title).title_bottom(bottom_left);
-    let mut bottom_right = match (
-        context.last_log.as_ref(),
-        context.notebook.editors.iter().any(|(_, item)| item.dirty),
-    ) {
-        (_, true) => vec![
-            Span::raw("").fg(THEME.accent).bg(THEME.background),
-            Span::raw(" 󰔚 Saving... ")
-                .fg(THEME.accent_text)
-                .bg(THEME.accent),
-        ],
-        (Some((log, _)), false) => vec![
-            Span::raw(format!(" {log} "))
-                .fg(THEME.success_text)
-                .bg(THEME.success),
-        ],
-        (None, false) => vec![],
-    };
-    if !bottom_right.is_empty() {
-        bottom_right.push(Span::raw(" "));
-    }
-    bottom_right.extend(statusbar::controls(&context.notebook).spans);
-    let block = block
-        .title_bottom(Line::from(bottom_right).right_aligned())
+    let block = Block::new()
+        .title(title)
         .fg(THEME.text)
         .bg(THEME.background)
         .padding(if context.notebook.show_line_number {
